@@ -1,14 +1,5 @@
 package com.jambit.jambel.hub;
 
-import java.util.Collections;
-import java.util.Map;
-
-import javax.inject.Inject;
-import javax.inject.Singleton;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.common.base.Optional;
 import com.google.common.collect.Maps;
 import com.jambit.jambel.hub.jobs.Job;
@@ -17,8 +8,12 @@ import com.jambit.jambel.hub.lights.LightStatusCalculator;
 import com.jambit.jambel.light.SignalLight;
 import com.jambit.jambel.light.SignalLightNotAvailableException;
 import com.jambit.jambel.light.SignalLightStatus;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-@Singleton
+import java.util.Collections;
+import java.util.Map;
+
 public final class JobStatusHub implements JobStatusReceiver {
 
 	private static final Logger logger = LoggerFactory.getLogger(JobStatusHub.class);
@@ -28,7 +23,6 @@ public final class JobStatusHub implements JobStatusReceiver {
 
 	private final Map<Job, JobState> lastStates;
 
-	@Inject
 	public JobStatusHub(SignalLight light, LightStatusCalculator calculator) {
 		this.light = light;
 		this.calculator = calculator;
@@ -109,5 +103,6 @@ public final class JobStatusHub implements JobStatusReceiver {
 	public SignalLightStatus getStatus() {
 		return calculator.calc(lastStates.values());
 	}
+
 
 }

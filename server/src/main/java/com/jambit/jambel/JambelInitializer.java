@@ -1,17 +1,12 @@
 package com.jambit.jambel;
 
-import javax.inject.Inject;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.common.net.HostAndPort;
-import com.jambit.jambel.config.SignalLightConfiguration;
+import com.jambit.jambel.config.jambel.SignalLightConfiguration;
 import com.jambit.jambel.hub.JobStatusHub;
 import com.jambit.jambel.hub.init.JobInitializer;
 import com.jambit.jambel.light.SignalLight;
-import com.jambit.jambel.server.HttpServer;
-import com.jambit.jambel.server.ServerModule;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class JambelInitializer {
 
@@ -23,14 +18,10 @@ public class JambelInitializer {
 
 	private final SignalLight signalLight;
 
-	private final HttpServer server;
-
-	@Inject
-	public JambelInitializer(JobStatusHub hub, JobInitializer jobInitializer, SignalLight signalLight, HttpServer server) {
+	public JambelInitializer(JobStatusHub hub, JobInitializer jobInitializer, SignalLight signalLight) {
 		this.hub = hub;
 		this.jobInitializer = jobInitializer;
 		this.signalLight = signalLight;
-		this.server = server;
 	}
 
 	public void init() {
@@ -38,11 +29,10 @@ public class JambelInitializer {
 
 		initHub();
 
-		startServer();
-
+        //TODO
 		logger.info(
 				"Jambel is ready to receive notifications. Be sure to configure Jenkins Notifications plugin (https://wiki.jenkins-ci.org/display/JENKINS/Notification+Plugin) for each job to HTTP POST to http://<HOSTNAME>:{}{}",
-				server.getHttpPort(), ServerModule.JOBS_PATH);
+				8080, "foo");
 	}
 
 	private void testSignalLightConnection() {
@@ -62,7 +52,16 @@ public class JambelInitializer {
 		hub.updateSignalLight();
 	}
 
-	private void startServer() {
-		server.start();
-	}
+
+    public JobInitializer getJobInitializer() {
+        return jobInitializer;
+    }
+
+    public SignalLight getSignalLight() {
+        return signalLight;
+    }
+
+    public JobStatusHub getHub() {
+        return hub;
+    }
 }

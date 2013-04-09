@@ -3,19 +3,21 @@ package com.jambit.jambel.hub.lights;
 import com.google.common.base.Function;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Iterables;
-import com.google.inject.Inject;
 import com.jambit.jambel.hub.jobs.JobState;
 import com.jambit.jambel.light.LightMode;
 
 import com.jambit.jambel.light.SignalLightStatus;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
 public class LightStatusCalculator {
 
 	private final ResultAggregator resultAggregator;
 
 	private final PhaseAggregator phaseAggregator;
 
-	@Inject
+	@Autowired
 	public LightStatusCalculator(ResultAggregator resultAggregator, PhaseAggregator phaseAggregator) {
 		this.resultAggregator = resultAggregator;
 		this.phaseAggregator = phaseAggregator;

@@ -1,8 +1,8 @@
-package com.jambit.jambel.config;
-
-import java.net.URL;
+package com.jambit.jambel.config.jambel;
 
 import com.google.common.base.Optional;
+
+import java.net.URL;
 
 public class JobConfiguration {
 
@@ -11,6 +11,8 @@ public class JobConfiguration {
 	private UpdateMode updateMode;
 
 	private Integer pollingInterval;
+
+    private boolean initialJobStatePoll;
 
 	public URL getJenkinsJobUrl() {
 		return jenkinsJobUrl;
@@ -24,4 +26,7 @@ public class JobConfiguration {
 		return Optional.fromNullable(pollingInterval);
 	}
 
+    public boolean isInitialJobStatePoll() {
+        return initialJobStatePoll;
+    }
 }

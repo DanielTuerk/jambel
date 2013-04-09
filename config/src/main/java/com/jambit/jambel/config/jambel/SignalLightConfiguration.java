@@ -1,4 +1,4 @@
-package com.jambit.jambel.config;
+package com.jambit.jambel.config.jambel;
 
 import com.google.common.base.Optional;
 import com.google.common.net.HostAndPort;

@@ -1,15 +1,14 @@
 package com.jambit.jambel.hub.poller;
 
-import java.io.IOException;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.common.base.Optional;
 import com.jambit.jambel.hub.JobStatusReceiver;
 import com.jambit.jambel.hub.jobs.Job;
 import com.jambit.jambel.hub.jobs.JobState;
 import com.jambit.jambel.hub.retrieval.JobStateRetriever;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
 
 /**
  * Uses the given {@link JobStateRetriever} to update the {@link Job} state for the given

@@ -1,22 +1,23 @@
 package com.jambit.jambel.hub.retrieval.jenkins;
 
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.URL;
-
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.DefaultHttpClient;
-
 import com.google.common.io.CharStreams;
 import com.google.gson.Gson;
 import com.jambit.jambel.hub.jobs.Job;
 import com.jambit.jambel.hub.jobs.JobState;
 import com.jambit.jambel.hub.retrieval.JobRetriever;
 import com.jambit.jambel.hub.retrieval.JobStateRetriever;
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.springframework.stereotype.Component;
 
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.URL;
+
+@Component
 public class JenkinsRetriever implements JobRetriever, JobStateRetriever {
 
 	public static final String JENKINS_JSON_API_SUFFIX = "/api/json";

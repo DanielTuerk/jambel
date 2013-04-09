@@ -1,55 +1,104 @@
 package com.jambit.jambel;
 
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import com.jambit.jambel.config.ConfigModule;
-import com.jambit.jambel.hub.HubModule;
-import com.jambit.jambel.server.HttpServer;
-import com.jambit.jambel.server.ServerModule;
-import com.jambit.jambel.server.mvc.LimeModule;
+import com.google.common.collect.Lists;
+import com.jambit.jambel.config.ConfigManagement;
+import com.jambit.jambel.config.jambel.JambelConfiguration;
+import com.jambit.jambel.hub.JobStatusHub;
+import com.jambit.jambel.hub.init.JobInitializer;
+import com.jambit.jambel.hub.lights.LightStatusCalculator;
+import com.jambit.jambel.hub.retrieval.JobRetriever;
+import com.jambit.jambel.hub.retrieval.JobStateRetriever;
+import com.jambit.jambel.light.SignalLight;
+import com.jambit.jambel.server.servlet.JenkinsNotificationsServlet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+import java.util.List;
+import java.util.concurrent.ScheduledExecutorService;
+
+@Component
 public class Jambel {
 
-	private static final Logger logger = LoggerFactory.getLogger(Jambel.class);
+    private static final Logger logger = LoggerFactory.getLogger(Jambel.class);
 
-	private Injector injector;
+    private List<JambelInitializer> jambelInitializers = Lists.newArrayList();
 
-	public Jambel(String configFilePath) {
-		this.injector = Guice.createInjector(new ConfigModule(configFilePath), new SignalLightModule(),
-				new HubModule(), new ServerModule(), new LimeModule());
-	}
+    @Autowired
+    private ConfigManagement configManagement;
 
-	public void init() {
-		JambelInitializer initializer = injector.getInstance(JambelInitializer.class);
-		initializer.init();
-	}
+    @Autowired
+    private SignalLightModule signalLightModule;
 
-	public void destroy() {
-		JambelDestroyer destroyer = injector.getInstance(JambelDestroyer.class);
-		destroyer.destroy();
-	}
+    @Autowired
+    private JobRetriever jobRetriever;
 
-	public void await() {
-		HttpServer server = injector.getInstance(HttpServer.class);
-		server.await();
-	}
+    @Autowired
+    private JobStateRetriever jobStateRetriever;
 
-	public static void main(String[] args) {
-		final Jambel jambel = new Jambel("etc/jambel.json");
+    @Autowired
+    private LightStatusCalculator lightStatusCalculator;
 
-		logger.info("initializing Jambel");
-		jambel.init();
+    @Autowired
+    private ScheduledExecutorService pollerExecutor;
 
-		Runtime.getRuntime().addShutdownHook(new Thread("destroyer") {
-			@Override
-			public void run() {
-				logger.info("destroying Jambel");
-				jambel.destroy();
-			}
-		});
+    @Autowired
+    private JenkinsNotificationsServlet jenkinsNotificationsServlet;
 
-		jambel.await();
-	}
+    @Autowired
+    private JambelDestroyer destroyer;
+
+    @PostConstruct
+    public void init() {
+
+        for (JambelConfiguration jambelConfiguration : configManagement.getJambelConfigurations().values()) {
+            initJambel(jambelConfiguration);
+        }
+
+    }
+
+    private void initJambel(JambelConfiguration jambelConfiguration) {
+        SignalLight signalLight = signalLightModule.create(jambelConfiguration.getSignalLightConfiguration());
+
+        JobStatusHub hub = new JobStatusHub(signalLight, lightStatusCalculator);
+        JobInitializer jobInitializer = new JobInitializer(hub, jambelConfiguration, jobRetriever, jobStateRetriever, pollerExecutor, jenkinsNotificationsServlet);
+
+        JambelInitializer jambelInitializer = new JambelInitializer(hub, jobInitializer, signalLight);
+        jambelInitializer.init();
+
+        jambelInitializers.add(jambelInitializer);
+    }
+
+    private void destroyJambel(JambelInitializer jambelInitializer) {
+        jenkinsNotificationsServlet.unRegister(jambelInitializer.getJobInitializer().getJambelConfiguration());
+        destroyer.destroy(jambelInitializer.getSignalLight());
+    }
+
+    @Autowired
+    private ScheduledExecutorService signalLightStatusExecutor;
+
+
+    @PreDestroy
+    public void destroy() {
+        pollerExecutor.shutdownNow();
+        try {
+            Thread.sleep(2000);
+        } catch (InterruptedException e) {
+
+
+        }
+
+        for (JambelInitializer jambelInitializer : jambelInitializers) {
+            destroyJambel(jambelInitializer);
+        }
+        signalLightStatusExecutor.shutdownNow();
+
+    }
+
+    public List<JambelInitializer> getJambelInitializers() {
+        return jambelInitializers;
+    }
 }

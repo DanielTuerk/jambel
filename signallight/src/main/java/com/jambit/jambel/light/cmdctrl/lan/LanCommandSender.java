@@ -3,8 +3,7 @@ package com.jambit.jambel.light.cmdctrl.lan;
 import com.google.common.base.Charsets;
 import com.google.common.net.HostAndPort;
 import com.google.common.util.concurrent.Monitor;
-import com.google.inject.Inject;
-import com.jambit.jambel.config.SignalLightConfiguration;
+import com.jambit.jambel.config.jambel.SignalLightConfiguration;
 import com.jambit.jambel.light.SignalLightNotAvailableException;
 import com.jambit.jambel.light.cmdctrl.SignalLightCommandSender;
 import org.slf4j.Logger;
@@ -27,7 +26,6 @@ public final class LanCommandSender implements SignalLightCommandSender {
 
 	private final Monitor monitor;
 
-	@Inject
 	public LanCommandSender(SignalLightConfiguration configuration) {
 		this.hostAndPort = configuration.getHostAndPort();
 		this.readTimeoutInMs = configuration.getReadTimeoutInMs();
@@ -84,7 +82,7 @@ public final class LanCommandSender implements SignalLightCommandSender {
 		}
 	}
 
-	private Socket connect() throws IOException {
+	private synchronized Socket connect() throws IOException {
 		Socket socket = new Socket();
 		SocketAddress address = new InetSocketAddress(hostAndPort.getHostText(), hostAndPort.getPort());
 		socket.connect(address, readTimeoutInMs);

@@ -2,11 +2,13 @@ package com.jambit.jambel.hub.lights;
 
 import com.google.common.collect.ImmutableSet;
 import com.jambit.jambel.hub.jobs.JobState;
+import org.springframework.stereotype.Component;
 
 import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
+@Component
 public class ResultAggregator {
 
 	public JobState.Result aggregate(Iterable<JobState.Result> results) {

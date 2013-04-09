@@ -1,4 +1,4 @@
-package com.jambit.jambel.config;
+package com.jambit.jambel.config.jambel;
 
 import java.util.Collection;
 

@@ -1,24 +1,19 @@
 package com.jambit.jambel.light.cmdctrl;
 
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import javax.inject.Named;
-import javax.inject.Singleton;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
-import com.google.inject.Inject;
-import com.jambit.jambel.config.SignalLightConfiguration;
+import com.jambit.jambel.config.jambel.SignalLightConfiguration;
 import com.jambit.jambel.light.LightMode;
 import com.jambit.jambel.light.SignalLight;
 import com.jambit.jambel.light.SignalLightNotAvailableException;
 import com.jambit.jambel.light.SignalLightStatus;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Sends ASCII commands using a {@link SignalLightCommandSender}.
@@ -26,7 +21,6 @@ import com.jambit.jambel.light.SignalLightStatus;
  * @author "Florian Rampp (Florian.Rampp@jambit.com)"
  * 
  */
-@Singleton
 public final class CommandControlledSignalLight implements SignalLight {
 
 	private static final Logger logger = LoggerFactory.getLogger(CommandControlledSignalLight.class.getName());
@@ -37,9 +31,8 @@ public final class CommandControlledSignalLight implements SignalLight {
 
 	private final ScheduledExecutorService executor;
 
-	@Inject
 	public CommandControlledSignalLight(SignalLightConfiguration configuration, SignalLightCommandSender commandSender,
-			@Named("signalLight") ScheduledExecutorService executor) {
+			ScheduledExecutorService executor) {
 		this.configuration = configuration;
 		this.commandSender = commandSender;
 		this.executor = executor;
@@ -128,7 +121,7 @@ public final class CommandControlledSignalLight implements SignalLight {
 			executor.scheduleWithFixedDelay(scheduledTask, 0, keepAliveInterval.get(), TimeUnit.MILLISECONDS);
 		}
 		else {
-			executor.execute(new UpdateLightStatusTask(newStatus));
+			executor.schedule(new UpdateLightStatusTask(newStatus),1,TimeUnit.MILLISECONDS);
 		}
 	}
 

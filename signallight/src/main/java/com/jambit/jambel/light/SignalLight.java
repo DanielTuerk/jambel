@@ -1,10 +1,10 @@
 package com.jambit.jambel.light;
 
-import com.jambit.jambel.config.SignalLightConfiguration;
+import com.jambit.jambel.config.jambel.SignalLightConfiguration;
 
 public interface SignalLight {
 
-	SignalLightConfiguration getConfiguration();
+	public SignalLightConfiguration getConfiguration();
 
 	void setNewStatus(SignalLightStatus newStatus);
 
