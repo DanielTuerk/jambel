@@ -1,79 +1,91 @@
 package com.jambit.jambel.config;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.gson.Gson;
 import com.jambit.jambel.config.jambel.JambelConfiguration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import java.io.BufferedReader;
+import javax.annotation.PreDestroy;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
+ * Manager bean to handle the JSON configuration files in the file system.
+ * <ul>
+ * <li>start monitoring at start up</li>
+ * <li>stop monitoring on destroy</li>
+ * </ul>
+ *
  * @author Daniel Tuerk (daniel.tuerk@jambit.com)
  */
 @Component
 public class ConfigManagement {
 
+    private static final Logger logger = LoggerFactory.getLogger(ConfigManagement.class);
+
+    /**
+     * Path of the directory for the configuration files.
+     */
     private final String configFilePath;
 
-    private final Map<Path, JambelConfiguration> jambelConfigurations = Maps.newHashMap();
-
-    private final List<ConfigListener> listeners = Lists.newArrayList();
+    /**
+     * Executor to monitor the configuration directory for modifications.
+     */
+    private final ScheduledExecutorService configFilesWatchServiceExecutor;
 
     @Autowired
-    public ConfigManagement(String configFilePath) {
+    public ConfigManagement(String configFilePath, ScheduledExecutorService configFilesWatchServiceExecutor) {
         this.configFilePath = configFilePath;
-    }
-
-    public void addListener(ConfigListener listener) {
-        listeners.add(listener);
-    }
-
-    public void removeListener(ConfigListener listener) {
-        listeners.remove(listener);
+        this.configFilesWatchServiceExecutor = configFilesWatchServiceExecutor;
     }
 
     @PostConstruct
-    public void initConfigFromFilePath() {
+    public void init() {
+        // schedule the watch service in repeating loop to look for modification at the jambel configuration files
+        configFilesWatchServiceExecutor.scheduleAtFixedRate(new ConfigPathWatchService(configFilePath), 0L, 1L, TimeUnit.MILLISECONDS);
+    }
+
+    /**
+     * Read the JSON configuration files from the configured file path.
+     * The JSON content is parsed to {@link JambelConfiguration} model and mapped to the JSON file name.
+     *
+     * @return {@link Map<Path,JambelConfiguration>} jambel configurations
+     */
+    public Map<Path, JambelConfiguration> loadConfigFromFilePath() {
+        Map<Path, JambelConfiguration> jambelConfigurations = Maps.newHashMap();
         Path path = Paths.get(configFilePath);
 
         try (DirectoryStream<Path> ds = Files.newDirectoryStream(path, "*.json")) {
             for (Path p : ds) {
-                // Iterate over the paths in the directory and print filenames
-                System.out.println(p.getFileName());
-
-
-                try (InputStream in = Files.newInputStream(p);
-                     BufferedReader reader =
-                             new BufferedReader(new InputStreamReader(in))) {
-
-                    JambelConfiguration jambelConfiguration = new Gson().fromJson(reader, JambelConfiguration.class);
-                    jambelConfigurations.put(p, jambelConfiguration);
-                } catch (IOException x) {
-                    System.err.println(x);
+                try {
+                    JambelConfiguration jambelConfiguration = ConfigUtils.loadConfigFromPath(p);
+                    if (jambelConfiguration != null) {
+                        jambelConfigurations.put(p, jambelConfiguration);
+                    } else {
+                        logger.error("can't load jambel from config file: " + p.getFileName());
+                    }
+                } catch (IOException e1) {
+                    logger.error("can't load jambel config", e1);
                 }
-
-
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new RuntimeException("can't load configurations from " + configFilePath, e);
         }
-
+        return jambelConfigurations;
     }
 
-    public Map<Path, JambelConfiguration> getJambelConfigurations() {
-        return jambelConfigurations;
+    @PreDestroy
+    public void destroy() {
+        configFilesWatchServiceExecutor.shutdownNow();
     }
 
 }

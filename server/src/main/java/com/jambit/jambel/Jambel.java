@@ -1,6 +1,8 @@
 package com.jambit.jambel;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.jambit.jambel.config.ConfigListener;
 import com.jambit.jambel.config.ConfigManagement;
 import com.jambit.jambel.config.jambel.JambelConfiguration;
 import com.jambit.jambel.hub.JobStatusHub;
@@ -17,15 +19,17 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import java.nio.file.Path;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ScheduledExecutorService;
 
 @Component
-public class Jambel {
+public class Jambel implements ConfigListener {
 
     private static final Logger logger = LoggerFactory.getLogger(Jambel.class);
 
-    private List<JambelInitializer> jambelInitializers = Lists.newArrayList();
+    private Map<Path, JambelInitializer> jambelInitializers = Maps.newHashMap();
 
     @Autowired
     private ConfigManagement configManagement;
@@ -51,16 +55,18 @@ public class Jambel {
     @Autowired
     private JambelDestroyer destroyer;
 
+    @Autowired
+    private ScheduledExecutorService signalLightStatusExecutor;
+
     @PostConstruct
     public void init() {
-
-        for (JambelConfiguration jambelConfiguration : configManagement.getJambelConfigurations().values()) {
-            initJambel(jambelConfiguration);
+        for (Map.Entry<Path, JambelConfiguration> entry : configManagement.loadConfigFromFilePath().entrySet()) {
+            jambelInitializers.put(entry.getKey(), initJambel(entry.getValue()));
         }
 
     }
 
-    private void initJambel(JambelConfiguration jambelConfiguration) {
+    private JambelInitializer initJambel(JambelConfiguration jambelConfiguration) {
         SignalLight signalLight = signalLightModule.create(jambelConfiguration.getSignalLightConfiguration());
 
         JobStatusHub hub = new JobStatusHub(signalLight, lightStatusCalculator);
@@ -68,18 +74,8 @@ public class Jambel {
 
         JambelInitializer jambelInitializer = new JambelInitializer(hub, jobInitializer, signalLight);
         jambelInitializer.init();
-
-        jambelInitializers.add(jambelInitializer);
+        return jambelInitializer;
     }
-
-    private void destroyJambel(JambelInitializer jambelInitializer) {
-        jenkinsNotificationsServlet.unRegister(jambelInitializer.getJobInitializer().getJambelConfiguration());
-        destroyer.destroy(jambelInitializer.getSignalLight());
-    }
-
-    @Autowired
-    private ScheduledExecutorService signalLightStatusExecutor;
-
 
     @PreDestroy
     public void destroy() {
@@ -87,18 +83,39 @@ public class Jambel {
         try {
             Thread.sleep(2000);
         } catch (InterruptedException e) {
-
-
+            //TODO: realy need to sleep?
         }
 
-        for (JambelInitializer jambelInitializer : jambelInitializers) {
+        for (JambelInitializer jambelInitializer : jambelInitializers.values()) {
             destroyJambel(jambelInitializer);
         }
         signalLightStatusExecutor.shutdownNow();
-
+        jambelInitializers.clear();
     }
 
     public List<JambelInitializer> getJambelInitializers() {
-        return jambelInitializers;
+        return Lists.newArrayList(jambelInitializers.values());
+    }
+
+    private void destroyJambel(JambelInitializer jambelInitializer) {
+        jenkinsNotificationsServlet.unRegister(jambelInitializer.getJobInitializer().getJambelConfiguration());
+        destroyer.destroy(jambelInitializer.getSignalLight());
+    }
+
+    @Override
+    public void jambelCreated(Path path, JambelConfiguration jambelConfiguration) {
+        jambelInitializers.put(path, initJambel(jambelConfiguration));
+    }
+
+    @Override
+    public void jambelRemoved(Path path) {
+        destroyJambel(jambelInitializers.get(path));
+        jambelInitializers.remove(path);
+    }
+
+    @Override
+    public void jambelUpdated(Path path, JambelConfiguration jambelConfiguration) {
+        jambelRemoved(path);
+        jambelCreated(path, jambelConfiguration);
     }
 }

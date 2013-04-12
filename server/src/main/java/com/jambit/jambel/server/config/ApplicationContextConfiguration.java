@@ -41,7 +41,6 @@ public class ApplicationContextConfiguration {
     @Bean
     public ScheduledExecutorService signalLightStatusExecutor() {
         ThreadFactory namedThreadFactory = new ThreadFactoryBuilder().setNameFormat("light-status-updater-%d").build();
-//        return Executors.newSingleThreadExecutor(namedThreadFactory);//newScheduledThreadPool(HubModule.POLLING_THREADS, namedThreadFactory);
         return Executors.newSingleThreadScheduledExecutor(namedThreadFactory);
     }
 

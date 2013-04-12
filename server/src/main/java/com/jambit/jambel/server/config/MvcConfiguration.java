@@ -49,7 +49,7 @@ public class MvcConfiguration extends WebMvcConfigurerAdapter {
     @Override
     public void addViewControllers(ViewControllerRegistry registry) {
         // TODO: map to controller request mappging
-        registry.addViewController("/").setViewName("jambeln");
+//        registry.addViewController("/").setViewName("jambeln");
     }
 
     @Bean

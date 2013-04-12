@@ -16,7 +16,7 @@ public class JambelController {
     @Autowired
     private Jambel jambel;
 
-    @RequestMapping(value = "jambeln", method = RequestMethod.GET)
+    @RequestMapping(value = "/", method = RequestMethod.GET)
     public ModelAndView showJambelView() {
         ModelAndView modelAndView = new ModelAndView("jambeln");
         modelAndView.addObject("initializers",jambel.getJambelInitializers());
