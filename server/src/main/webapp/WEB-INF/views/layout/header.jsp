@@ -1,1 +1,2 @@
-<h1>Jambel</h1>
+<img class="flower" style="left: 10px" src="<%= pageContext.getServletContext().getContextPath() %>/static/images/jambit-bg.png"/>
+<img class="flower" style="right: 10px" src="<%= pageContext.getServletContext().getContextPath() %>/static/images/jambit-bg.png"/>

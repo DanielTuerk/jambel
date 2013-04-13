@@ -80,12 +80,8 @@ public class Jambel implements ConfigListener {
     @PreDestroy
     public void destroy() {
         pollerExecutor.shutdownNow();
-        try {
-            Thread.sleep(2000);
-        } catch (InterruptedException e) {
-            //TODO: realy need to sleep?
-        }
 
+        // TODO: shutdown not working, no red or sometimes no colors and no connections ...
         for (JambelInitializer jambelInitializer : jambelInitializers.values()) {
             destroyJambel(jambelInitializer);
         }

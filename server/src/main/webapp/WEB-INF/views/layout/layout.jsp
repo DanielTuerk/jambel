@@ -19,14 +19,13 @@
     <title>Jambel</title>
     <meta name="description" content="">
     <meta name="viewport" content="width=device-width">
-    <link rel="stylesheet" href="<%= pageContext.getServletContext().getContextPath() %>/static/style/styles.css" type="text/css">
+    <link rel="stylesheet" href="<%= pageContext.getServletContext().getContextPath() %>/static/styles/styles.css" type="text/css">
 
-    <script type="text/javascript" src="<%= pageContext.getServletContext().getContextPath() %>/static/javascript/jquery-1.8.3.js"></script>
 </head>
 
 <body>
 <div>
-    <div>
+    <div class="header">
         <tiles:insertAttribute name="header"/>
     </div>
 
@@ -37,7 +36,7 @@
     <br/>
 
     <!-- Content -->
-    <div style="width: 100%; height: auto;">
+    <div style="width: 98.5%; height: auto; margin-left: 1.5%">
         <tiles:insertAttribute name="content"/>
     </div>
     <div>
