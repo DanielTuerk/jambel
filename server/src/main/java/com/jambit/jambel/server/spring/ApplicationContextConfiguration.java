@@ -1,4 +1,4 @@
-package com.jambit.jambel.server.config;
+package com.jambit.jambel.server.spring;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.jambit.jambel.hub.HubModule;

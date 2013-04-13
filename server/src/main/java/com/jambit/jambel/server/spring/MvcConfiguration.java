@@ -1,4 +1,4 @@
-package com.jambit.jambel.server.config;
+package com.jambit.jambel.server.spring;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

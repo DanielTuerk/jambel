@@ -1,4 +1,4 @@
-package com.jambit.jambel.server.config;
+package com.jambit.jambel.server.spring;
 
 import com.google.common.collect.Maps;
 import org.apache.tiles.Attribute;
@@ -31,6 +31,7 @@ public class JspDefinitionsFactory extends UnresolvingLocaleDefinitionsFactory {
     public JspDefinitionsFactory() {
         addDefinition("welcome", MvcConfiguration.VIEW_RESOLVER_PREFIX + "welcome" + MvcConfiguration.VIEW_RESOLVER_SUFFIX);
         addDefinition("jambeln", MvcConfiguration.VIEW_RESOLVER_PREFIX + "jambeln" + MvcConfiguration.VIEW_RESOLVER_SUFFIX);
+        addDefinition("log", MvcConfiguration.VIEW_RESOLVER_PREFIX + "log" + MvcConfiguration.VIEW_RESOLVER_SUFFIX);
     }
 
     @Override

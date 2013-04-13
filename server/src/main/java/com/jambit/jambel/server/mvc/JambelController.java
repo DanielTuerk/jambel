@@ -8,6 +8,8 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
 
 /**
+ * Main controller to show the jambels overview with the states and configurations.
+ *
  * @author Daniel Tuerk (daniel.tuerk@jambit.com)
  */
 @Controller
