@@ -69,7 +69,7 @@ public class ConfigManagement {
                 try {
                     JambelConfiguration jambelConfiguration = ConfigUtils.loadConfigFromPath(p);
                     if (jambelConfiguration != null) {
-                        jambelConfigurations.put(p, jambelConfiguration);
+                        jambelConfigurations.put(p.getFileName(), jambelConfiguration);
                     } else {
                         logger.error("can't load jambel from config file: " + p.getFileName());
                     }

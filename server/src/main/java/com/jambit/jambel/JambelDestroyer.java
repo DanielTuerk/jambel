@@ -18,6 +18,7 @@ public class JambelDestroyer {
     public void destroy(SignalLight signalLight) {
 
         resetSignalLight(signalLight);
+        signalLight.shutdown();
     }
 
     private void resetSignalLight(SignalLight signalLight) {

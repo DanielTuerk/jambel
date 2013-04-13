@@ -24,4 +24,5 @@ public interface SignalLight {
 
 	boolean isAvailable();
 
+    public void shutdown();
 }

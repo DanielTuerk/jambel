@@ -85,25 +85,46 @@ public final class ConfigPathWatchService implements Runnable {
 
                 // The filename is the context of the event.
                 WatchEvent<Path> ev = (WatchEvent<Path>) event;
-                Path filename = ev.context();
+                final Path filename = ev.context();
+
+                if(!filename.toString().endsWith(".json")) {
+                    continue;
+                }
 
                 // parse configuration for updated files
                 JambelConfiguration jambelConfiguration = null;
                 if (kind != StandardWatchEventKinds.ENTRY_DELETE) {
+                    logger.debug("load config from file " + filename);
                     Path child = path.resolve(filename);
                     jambelConfiguration = ConfigUtils.loadConfigFromPath(child);
                 }
 
                 // send events for the modification at the jambel configurations
-                for (ConfigListener listener : LISTENERS) {
+                for (final ConfigListener listener : LISTENERS) {
                     if (kind == StandardWatchEventKinds.ENTRY_DELETE) {
-                        listener.jambelRemoved(filename);
+                        new Thread(new Runnable() {
+                            @Override
+                            public void run() {
+                                listener.jambelRemoved(filename);
+                            }
+                        }).start();
                     } else {
                         if (jambelConfiguration != null) {
+                            final JambelConfiguration finalJambelConfiguration = jambelConfiguration;
                             if (kind == StandardWatchEventKinds.ENTRY_CREATE) {
-                                listener.jambelCreated(filename, jambelConfiguration);
+                                new Thread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        listener.jambelCreated(filename, finalJambelConfiguration);
+                                    }
+                                }).start();
                             } else if (kind == StandardWatchEventKinds.ENTRY_MODIFY) {
-                                listener.jambelUpdated(filename, jambelConfiguration);
+                                new Thread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        listener.jambelUpdated(filename, finalJambelConfiguration);
+                                    }
+                                }).start();
                             } else {
                                 logger.error("unknown Watch Event " + kind);
                             }

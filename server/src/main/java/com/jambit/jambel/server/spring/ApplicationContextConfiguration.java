@@ -29,19 +29,12 @@ public class ApplicationContextConfiguration {
             configPath.mkdirs();
         }
         return configPath.getAbsolutePath();
-
     }
 
     @Bean
     public ScheduledExecutorService pollerExecutor() {
         ThreadFactory namedThreadFactory = new ThreadFactoryBuilder().setNameFormat("poller-%d").build();
 		return Executors.newScheduledThreadPool(HubModule.POLLING_THREADS, namedThreadFactory);
-    }
-
-    @Bean
-    public ScheduledExecutorService signalLightStatusExecutor() {
-        ThreadFactory namedThreadFactory = new ThreadFactoryBuilder().setNameFormat("light-status-updater-%d").build();
-        return Executors.newSingleThreadScheduledExecutor(namedThreadFactory);
     }
 
 }

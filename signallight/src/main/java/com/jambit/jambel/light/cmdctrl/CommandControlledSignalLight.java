@@ -135,7 +135,12 @@ public final class CommandControlledSignalLight implements SignalLight {
 		return commandSender.reachesSignalLight();
 	}
 
-	@Override
+    @Override
+    public void shutdown() {
+        executor.shutdownNow();
+    }
+
+    @Override
 	public SignalLightConfiguration getConfiguration() {
 		return configuration;
 	}
