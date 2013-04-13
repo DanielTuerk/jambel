@@ -36,7 +36,7 @@
     <br/>
 
     <!-- Content -->
-    <div style="width: 98.5%; height: auto; margin-left: 1.5%">
+    <div style="width: 98.5%; height: auto; margin-left: 1.5%;">
         <tiles:insertAttribute name="content"/>
     </div>
     <div>

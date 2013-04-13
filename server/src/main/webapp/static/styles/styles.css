@@ -93,7 +93,8 @@ div.box {
     font-size: 9pt;
     color: #000;
     vertical-align: middle;
-    width: 29.5%;
+    min-width: 200px;
+    max-width: 300px;
     margin: 1%;
     padding: 0.5%;
 }

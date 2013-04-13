@@ -8,7 +8,7 @@
 <c:forEach items="${initializers}" var="initializer" varStatus="counter">
 
     <c:if test="${counter.index % 3 == 0}">
-        <div style="clear: both"></div>
+        <%--<div style="clear: both"></div>--%>
     </c:if>
 
     <div class="box" style="float:left">
