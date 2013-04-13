@@ -4,6 +4,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.jambit.jambel.config.ConfigListener;
 import com.jambit.jambel.config.ConfigManagement;
+import com.jambit.jambel.config.ConfigPathWatchService;
 import com.jambit.jambel.config.jambel.JambelConfiguration;
 import com.jambit.jambel.hub.JobStatusHub;
 import com.jambit.jambel.hub.init.JobInitializer;
@@ -63,7 +64,7 @@ public class Jambel implements ConfigListener {
         for (Map.Entry<Path, JambelConfiguration> entry : configManagement.loadConfigFromFilePath().entrySet()) {
             jambelInitializers.put(entry.getKey(), initJambel(entry.getValue()));
         }
-
+        ConfigPathWatchService.addListener(this);
     }
 
     private JambelInitializer initJambel(JambelConfiguration jambelConfiguration) {
@@ -79,6 +80,8 @@ public class Jambel implements ConfigListener {
 
     @PreDestroy
     public void destroy() {
+        ConfigPathWatchService.removeListener(this);
+
         pollerExecutor.shutdownNow();
 
         // TODO: shutdown not working, no red or sometimes no colors and no connections ...

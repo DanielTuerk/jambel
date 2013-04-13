@@ -12,7 +12,7 @@ import java.util.List;
 /**
  * Watch service for the configuration files.
  * The runnable listen to the <code>configFilePath</code> directory for modifications.
- *
+ * <p/>
  * Only JSON files are expected in the directory and each watch event will be mapped to the {@link ConfigListener}.
  *
  * @author Daniel Tuerk (daniel.tuerk@jambit.com)
@@ -37,7 +37,8 @@ public final class ConfigPathWatchService implements Runnable {
 
     /**
      * Remove the given and already registered listener.
-     * @param listener             {@link ConfigListener}
+     *
+     * @param listener {@link ConfigListener}
      */
     public static void removeListener(ConfigListener listener) {
         LISTENERS.remove(listener);
@@ -62,7 +63,7 @@ public final class ConfigPathWatchService implements Runnable {
         Path path = Paths.get(configFilePath);
         try {
             // register watch service
-        WatchService watchService = FileSystems.getDefault().newWatchService();
+            WatchService watchService = FileSystems.getDefault().newWatchService();
             WatchKey watchKey = path.register(watchService,
                     StandardWatchEventKinds.ENTRY_CREATE, StandardWatchEventKinds.ENTRY_DELETE, StandardWatchEventKinds.ENTRY_MODIFY);
             try {
@@ -86,19 +87,23 @@ public final class ConfigPathWatchService implements Runnable {
                 WatchEvent<Path> ev = (WatchEvent<Path>) event;
                 Path filename = ev.context();
 
+                // parse configuration for updated files
+                JambelConfiguration jambelConfiguration = null;
+                if (kind != StandardWatchEventKinds.ENTRY_DELETE) {
+                    Path child = path.resolve(filename);
+                    jambelConfiguration = ConfigUtils.loadConfigFromPath(child);
+                }
+
                 // send events for the modification at the jambel configurations
                 for (ConfigListener listener : LISTENERS) {
                     if (kind == StandardWatchEventKinds.ENTRY_DELETE) {
                         listener.jambelRemoved(filename);
                     } else {
-                        Path child = path.resolve(filename);
-                        JambelConfiguration jambelConfiguration = ConfigUtils.loadConfigFromPath(child);
-
                         if (jambelConfiguration != null) {
                             if (kind == StandardWatchEventKinds.ENTRY_CREATE) {
-                                listener.jambelCreated(filename,jambelConfiguration);
+                                listener.jambelCreated(filename, jambelConfiguration);
                             } else if (kind == StandardWatchEventKinds.ENTRY_MODIFY) {
-                                listener.jambelUpdated(filename,jambelConfiguration);
+                                listener.jambelUpdated(filename, jambelConfiguration);
                             } else {
                                 logger.error("unknown Watch Event " + kind);
                             }
