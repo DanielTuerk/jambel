@@ -18,10 +18,15 @@ public class JambelController {
     @Autowired
     private Jambel jambel;
 
+    /**
+     * Show the view for the jambel overview.
+     *
+     * @return {@link ModelAndView}
+     */
     @RequestMapping(value = "/", method = RequestMethod.GET)
     public ModelAndView showJambelView() {
         ModelAndView modelAndView = new ModelAndView("jambeln");
-        modelAndView.addObject("initializers",jambel.getJambelInitializers());
+        modelAndView.addObject("initializers", jambel.getJambelInitializerInstances());
         return modelAndView;
     }
 }

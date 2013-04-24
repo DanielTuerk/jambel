@@ -1,8 +1,11 @@
 package com.jambit.jambel.hub.jobs;
 
+import com.google.gson.annotations.Expose;
+
 public final class Job {
 
 	private final String name;
+    @Expose
 	private final String url;
 
 	public Job(String name, String url) {

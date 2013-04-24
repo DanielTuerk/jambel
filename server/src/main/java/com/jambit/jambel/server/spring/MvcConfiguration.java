@@ -4,7 +4,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.ViewResolver;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
-import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 import org.springframework.web.servlet.view.BeanNameViewResolver;
 import org.springframework.web.servlet.view.UrlBasedViewResolver;
@@ -16,7 +15,7 @@ import org.springframework.web.servlet.view.tiles3.TilesView;
  * <p/>
  * <ul>
  * <li>view resolver for JSPs</li>
- * <li>mapping root request to welcome page</li>
+ * <li>tiles in JSPs</li>
  * </ul>
  *
  * @author Daniel Tuerk (daniel.tuerk@jambit.com)
@@ -43,13 +42,6 @@ public class MvcConfiguration extends WebMvcConfigurerAdapter {
         viewResolver.setOrder(2);
         viewResolver.setViewClass(TilesView.class);
         return viewResolver;
-    }
-
-
-    @Override
-    public void addViewControllers(ViewControllerRegistry registry) {
-        // TODO: map to controller request mappging
-//        registry.addViewController("/").setViewName("jambeln");
     }
 
     @Bean

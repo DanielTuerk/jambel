@@ -10,11 +10,10 @@ import javax.servlet.ServletException;
 import javax.servlet.ServletRegistration;
 
 /**
- * Classic dispatcher servlet for the Spring web application context:
+ * Classic dispatcher servlet for the Spring web application context.
  *
  * @author Daniel Tuerk (daniel.tuerk@jambit.com)
  */
-//@Configuration
 public class DispatcherServletConfiguration implements WebApplicationInitializer {
 
     private static final String WEB_DISPATCHER_SERVLET_NAME = "webDispatcher";

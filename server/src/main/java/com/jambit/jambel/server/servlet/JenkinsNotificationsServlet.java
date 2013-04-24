@@ -20,30 +20,35 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Map;
 
+/**
+ * Entry point for the Jenkins Poster plugin.
+ * Each Jenkins-Job sends his states to this servlet. The servlet match the job states to the configured (and registered) jambel instances.
+ *
+ * @author Florian Ramp
+ * @author Daniel Tuerk (daniel.tuerk@jambit.com)
+ */
 @Controller
 public class JenkinsNotificationsServlet implements JobStateReceiverRegistry {
 
+    /**
+     * Registered hubs to map the notification data.
+     */
     private Map<JambelConfiguration, JobStatusHub> jambelPostReceiver = Maps.newHashMap();
 
     @Override
-    public void register(JambelConfiguration jambelConfiguration, JobStatusHub hub) {
-        //To change body of implemented methods use File | Settings | File Templates.
+    public void subscribe(JambelConfiguration jambelConfiguration, JobStatusHub hub) {
         jambelPostReceiver.put(jambelConfiguration, hub);
     }
 
     @Override
-    public void unRegister(JambelConfiguration jambelConfiguration) {
+    public void unsubscribe(JambelConfiguration jambelConfiguration) {
         jambelPostReceiver.remove(jambelConfiguration);
     }
 
-
-//    private final JobStatusReceiver hub;
-//
-//    @Autowired
-//    public JenkinsNotificationsServlet(JobStatusReceiver hub) {
-//        this.hub = hub;
-//    }
-
+    /**
+     * Model for the received JSON data of the notification plugin.
+     * Only used in this servlet, the data is mapped to the models of the hub module.
+     */
     private static class NotificationData {
         public String name;
         public String url;
@@ -70,6 +75,13 @@ public class JenkinsNotificationsServlet implements JobStateReceiverRegistry {
         }
     }
 
+    /**
+     * Servlet mapping for the Jenkins notification plugin.
+     *
+     * @param req {@link HttpServletRequest}
+     * @throws ServletException {@link ServletException}
+     * @throws IOException      {@link IOException}
+     */
     @RequestMapping(value = "notifications/jenkins", method = RequestMethod.POST)
     public void doPost(HttpServletRequest req) throws ServletException, IOException {
         Gson gson = new Gson();
@@ -77,27 +89,21 @@ public class JenkinsNotificationsServlet implements JobStateReceiverRegistry {
         MDC.put("phase", data.build.phase.toString());
         MDC.put("jobName", data.name);
         try {
-//            hub.updateJobState(data.getJob(), data.getPhase(), data.getResult());
-            //TODO: dispatch to jambel instances
             for (JambelConfiguration jambelConfiguration : jambelPostReceiver.keySet()) {
                 for (JobConfiguration jobConfiguration : jambelConfiguration.getJobs()) {
 
                     String expectedHost = jobConfiguration.getJenkinsJobUrl().getHost();
-                                            String jobConfigPath = jobConfiguration.getJenkinsJobUrl().getPath().replace("/","");
+                    String jobConfigPath = jobConfiguration.getJenkinsJobUrl().getPath().replace("/", "");
 
                     if ((req.getRemoteHost().equals(expectedHost) || req.getRemoteAddr().equals(expectedHost))
-                            && jobConfigPath.equals(data.url.replace("/",""))) {
+                            && jobConfigPath.equals(data.url.replace("/", ""))) {
                         jambelPostReceiver.get(jambelConfiguration).updateJobState(data.getJob(), data.getPhase(), data.getResult());
                     }
                 }
             }
-
-
         } finally {
             MDC.remove("jobName");
             MDC.remove("phase");
         }
     }
-
-
 }

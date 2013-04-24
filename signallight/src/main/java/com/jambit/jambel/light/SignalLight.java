@@ -22,7 +22,15 @@ public interface SignalLight {
 	 */
 	void reset();
 
+    /**
+     * Check for established connection.
+     *
+     * @return state
+     */
 	boolean isAvailable();
 
+    /**
+     * Shutdown hook for the instance.
+     */
     public void shutdown();
 }

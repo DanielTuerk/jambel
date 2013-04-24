@@ -5,11 +5,7 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn" %>
 <%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
 
-<c:forEach items="${initializers}" var="initializer" varStatus="counter">
-
-    <c:if test="${counter.index % 3 == 0}">
-        <%--<div style="clear: both"></div>--%>
-    </c:if>
+<c:forEach items="${initializers}" var="initializer">
 
     <div class="box" style="float:left">
         <h4><c:out value="${initializer.signalLight.configuration.hostAndPort}"/>&nbsp;(

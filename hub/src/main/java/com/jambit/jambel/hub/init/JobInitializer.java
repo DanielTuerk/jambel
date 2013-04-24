@@ -66,7 +66,8 @@ public class JobInitializer {
             }
             if (job == null || state == null) {
                 job = new Job(jobUrl.getPath().split("/")[2], jobUrl.toString());
-                state = new JobState(JobState.Phase.COMPLETED, JobState.Result.NOT_BUILT);
+                // load from storage
+                state = hub.getLastStateStorage().loadLastState(job);
             }
             hub.addJob(job, state);
             logger.info("initialized job '{}' with state '{}'", new Object[]{job, state});
@@ -79,11 +80,11 @@ public class JobInitializer {
                     poller.addPollingTask(job, jobConfig.getPollingInterval());
                     break;
                 case posting:
-                    jobStateReceiverRegistry.register(jambelConfiguration, hub);
+                    jobStateReceiverRegistry.subscribe(jambelConfiguration, hub);
                     break;
             }
 
-
+            // TODO update signal light?
         }
     }
 

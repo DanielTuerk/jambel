@@ -8,6 +8,7 @@ import com.jambit.jambel.config.ConfigPathWatchService;
 import com.jambit.jambel.config.jambel.JambelConfiguration;
 import com.jambit.jambel.hub.JobStatusHub;
 import com.jambit.jambel.hub.init.JobInitializer;
+import com.jambit.jambel.hub.init.LastStateStorageFactory;
 import com.jambit.jambel.hub.lights.LightStatusCalculator;
 import com.jambit.jambel.hub.retrieval.JobRetriever;
 import com.jambit.jambel.hub.retrieval.JobStateRetriever;
@@ -30,7 +31,7 @@ public class Jambel implements ConfigListener {
 
     private static final Logger logger = LoggerFactory.getLogger(Jambel.class);
 
-    private Map<Path, JambelInitializer> jambelInitializers = Maps.newHashMap();
+    private Map<Path, JambelInitializer> jambelInitializerInstances = Maps.newHashMap();
 
     @Autowired
     private ConfigManagement configManagement;
@@ -57,12 +58,12 @@ public class Jambel implements ConfigListener {
     private JambelDestroyer destroyer;
 
     @Autowired
-    private ScheduledExecutorService signalLightStatusExecutor;
+    private LastStateStorageFactory lastStateStorageFactory;
 
     @PostConstruct
     public void init() {
         for (Map.Entry<Path, JambelConfiguration> entry : configManagement.loadConfigFromFilePath().entrySet()) {
-            jambelInitializers.put(entry.getKey(), initJambel(entry.getValue()));
+            jambelInitializerInstances.put(entry.getKey(), initJambel(entry.getValue()));
         }
         ConfigPathWatchService.addListener(this);
     }
@@ -70,8 +71,10 @@ public class Jambel implements ConfigListener {
     private JambelInitializer initJambel(JambelConfiguration jambelConfiguration) {
         SignalLight signalLight = signalLightModule.create(jambelConfiguration.getSignalLightConfiguration());
 
-        JobStatusHub hub = new JobStatusHub(signalLight, lightStatusCalculator);
-        JobInitializer jobInitializer = new JobInitializer(hub, jambelConfiguration, jobRetriever, jobStateRetriever, pollerExecutor, jenkinsNotificationsServlet);
+        JobStatusHub hub = new JobStatusHub(signalLight, lightStatusCalculator,
+                lastStateStorageFactory.createStorage(jambelConfiguration.getSignalLightConfiguration()));
+        JobInitializer jobInitializer = new JobInitializer(hub, jambelConfiguration, jobRetriever, jobStateRetriever,
+                pollerExecutor, jenkinsNotificationsServlet);
 
         JambelInitializer jambelInitializer = new JambelInitializer(hub, jobInitializer, signalLight);
         jambelInitializer.init();
@@ -85,31 +88,30 @@ public class Jambel implements ConfigListener {
         pollerExecutor.shutdownNow();
 
         // TODO: shutdown not working, no red or sometimes no colors and no connections ...
-        for (JambelInitializer jambelInitializer : jambelInitializers.values()) {
+        for (JambelInitializer jambelInitializer : jambelInitializerInstances.values()) {
             destroyJambel(jambelInitializer);
         }
-        signalLightStatusExecutor.shutdownNow();
-        jambelInitializers.clear();
+        jambelInitializerInstances.clear();
     }
 
-    public List<JambelInitializer> getJambelInitializers() {
-        return Lists.newArrayList(jambelInitializers.values());
+    public List<JambelInitializer> getJambelInitializerInstances() {
+        return Lists.newArrayList(jambelInitializerInstances.values());
     }
 
     private void destroyJambel(JambelInitializer jambelInitializer) {
-        jenkinsNotificationsServlet.unRegister(jambelInitializer.getJobInitializer().getJambelConfiguration());
+        jenkinsNotificationsServlet.unsubscribe(jambelInitializer.getJobInitializer().getJambelConfiguration());
         destroyer.destroy(jambelInitializer.getSignalLight());
     }
 
     @Override
     public void jambelCreated(Path path, JambelConfiguration jambelConfiguration) {
-        jambelInitializers.put(path, initJambel(jambelConfiguration));
+        jambelInitializerInstances.put(path, initJambel(jambelConfiguration));
     }
 
     @Override
     public void jambelRemoved(Path path) {
-        destroyJambel(jambelInitializers.get(path));
-        jambelInitializers.remove(path);
+        destroyJambel(jambelInitializerInstances.get(path));
+        jambelInitializerInstances.remove(path);
     }
 
     @Override

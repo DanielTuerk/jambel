@@ -23,18 +23,28 @@ import java.util.concurrent.ThreadFactory;
 public class ApplicationContextConfiguration {
 
     @Bean
-    public String configFilePath() {
-        File configPath = new File(System.getProperty("user.home")  +"/.jambel/");
-        if(!configPath.exists()){
+    public String jambelHomePath() {
+        File configPath = new File(System.getProperty("user.home") + "/.jambel/");
+        if (!configPath.exists()) {
             configPath.mkdirs();
         }
         return configPath.getAbsolutePath();
     }
 
     @Bean
+    public String configFilePath() {
+        return jambelHomePath() + "/config/";
+    }
+
+    @Bean
+    public String storageFilePath() {
+        return jambelHomePath() + "/storage/";
+    }
+
+    @Bean
     public ScheduledExecutorService pollerExecutor() {
         ThreadFactory namedThreadFactory = new ThreadFactoryBuilder().setNameFormat("poller-%d").build();
-		return Executors.newScheduledThreadPool(HubModule.POLLING_THREADS, namedThreadFactory);
+        return Executors.newScheduledThreadPool(HubModule.POLLING_THREADS, namedThreadFactory);
     }
 
 }
