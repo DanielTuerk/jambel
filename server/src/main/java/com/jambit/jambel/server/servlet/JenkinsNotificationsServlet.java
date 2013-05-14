@@ -95,8 +95,10 @@ public class JenkinsNotificationsServlet implements JobStateReceiverRegistry {
                     String expectedHost = jobConfiguration.getJenkinsJobUrl().getHost();
                     String jobConfigPath = jobConfiguration.getJenkinsJobUrl().getPath().replace("/", "");
 
+
                     if ((req.getRemoteHost().equals(expectedHost) || req.getRemoteAddr().equals(expectedHost))
                             && jobConfigPath.equals(data.url.replace("/", ""))) {
+                        data.url = jobConfiguration.getJenkinsJobUrl().toString();
                         jambelPostReceiver.get(jambelConfiguration).updateJobState(data.getJob(), data.getPhase(), data.getResult());
                     }
                 }

@@ -1,8 +1,6 @@
 package com.jambit.jambel.hub.init;
 
-import com.google.common.collect.Maps;
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.jambit.jambel.hub.jobs.Job;
 import com.jambit.jambel.hub.jobs.JobState;
 import org.slf4j.Logger;
@@ -14,6 +12,9 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -25,7 +26,7 @@ public class LastStateStorage {
 
     private static final Logger logger = LoggerFactory.getLogger(LastStateStorage.class.getName());
 
-    private Map<Job, JobState> lastStatesFromFile= Maps.newLinkedHashMap();
+    private Map<Job, JobState> lastStatesFromFile = new HashMap<>();
 
     /**
      * Path to the JSON file.
@@ -44,7 +45,7 @@ public class LastStateStorage {
 
     /**
      * Load the latest stored state of the given {@link Job}.
-     *
+     * <p/>
      * TODO: not working
      *
      * @param job {@link Job} to load state for
@@ -62,51 +63,54 @@ public class LastStateStorage {
 
     /**
      * Store the given states.
-     *
+     * <p/>
      * TODO: not working
      *
      * @param lastStates states to store
      */
     public void storeJobStates(Map<Job, JobState> lastStates) {
+        List<JsonContainer> jsonContainerList = new ArrayList<>();
+        for (Map.Entry<Job, JobState> state : lastStates.entrySet()) {
+            jsonContainerList.add(new JsonContainer(state.getKey(), state.getValue()));
+        }
         try {
-            JsonContainer container = new JsonContainer();
-            container.setLastStates(lastStates);
-            Files.write(storageJsonFile, new Gson().toJson(container).getBytes());
+
+            Files.write(storageJsonFile, new Gson().toJson(jsonContainerList).getBytes());
         } catch (IOException e) {
             logger.error("can't write last job states to " + storageJsonFile.getFileName().toString(), e);
         }
-        readFile();
+//        readFile();
     }
 
     private void readFile() {
         try {
             InputStream in = Files.newInputStream(storageJsonFile);
             BufferedReader reader = new BufferedReader(new InputStreamReader(in));
-            JsonContainer jsonContainer = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create().fromJson(reader, JsonContainer.class);
-            if (jsonContainer != null && jsonContainer.getLastStates() != null) {
-                lastStatesFromFile = jsonContainer.getLastStates();
-            } else {
-                lastStatesFromFile = Maps.newLinkedHashMap();
+            JsonContainer[] jsonContainer = new Gson().fromJson(reader, JsonContainer[].class);
+            lastStatesFromFile = new HashMap<>();
+            if (jsonContainer != null && jsonContainer.length > 0) {
+                for (JsonContainer jsonEntry : jsonContainer) {
+                    lastStatesFromFile.put(jsonEntry.job, jsonEntry.jobState);
+                }
             }
-        } catch (IOException e) {
+        } catch (Exception e) {
             logger.error("can't read job state storage", e);
-            lastStatesFromFile = Maps.newLinkedHashMap();
+            lastStatesFromFile = new HashMap<>();
         }
     }
 
     /**
      * Simple container model for JSON.
      */
-    private class JsonContainer {
+    public class JsonContainer {
 
-        private Map<Job, JobState> lastStates;
 
-        private Map<Job, JobState> getLastStates() {
-            return lastStates;
-        }
+        public Job job;
+        public JobState jobState;
 
-        private void setLastStates(Map<Job, JobState> lastStates) {
-            this.lastStates = lastStates;
+        public JsonContainer(Job job, JobState jobState) {
+            this.job = job;
+            this.jobState = jobState;
         }
     }
 }

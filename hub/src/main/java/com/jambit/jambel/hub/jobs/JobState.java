@@ -1,7 +1,5 @@
 package com.jambit.jambel.hub.jobs;
 
-import com.google.common.base.Objects;
-
 public final class JobState {
 
 	public static enum Phase {
@@ -28,10 +26,10 @@ public final class JobState {
 		return lastResult;
 	}
 
-	@Override
-	public String toString() {
-		return Objects.toStringHelper(this).add("phase", phase).add("last result", lastResult).toString();
-	}
+//	@Override
+//	public String toString() {
+//		return Objects.toStringHelper(this).add("phase", phase).add("last result", lastResult).toString();
+//	}
 
 	@Override
 	public int hashCode() {

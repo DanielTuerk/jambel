@@ -1,7 +1,5 @@
 package com.jambit.jambel.server.spring;
 
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import com.jambit.jambel.hub.HubModule;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -9,18 +7,15 @@ import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.scheduling.annotation.EnableAsync;
 
 import java.io.File;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ThreadFactory;
 
 /**
  * Spring application context.
- *
+ * <p/>
  * <ul>
- *     <li>detect the user home and create workspace</li>
- *     <li>set the 'config' path in the workspace</li>
- *     <li>set the 'storage' path in the workspace</li>
- *     <li>create executor for the jenkins long polling task</li>
+ * <li>perform the component scan</li>
+ * <li>detect the user home and create workspace</li>
+ * <li>set the 'config' path in the workspace</li>
+ * <li>set the 'storage' path in the workspace</li>
  * </ul>
  *
  * @author Daniel Tuerk (daniel.tuerk@jambit.com)
@@ -48,12 +43,6 @@ public class ApplicationContextConfiguration {
     @Bean
     public String storageFilePath() {
         return jambelHomePath() + "/storage/";
-    }
-
-    @Bean
-    public ScheduledExecutorService pollerExecutor() {
-        ThreadFactory namedThreadFactory = new ThreadFactoryBuilder().setNameFormat("poller-%d").build();
-        return Executors.newScheduledThreadPool(HubModule.POLLING_THREADS, namedThreadFactory);
     }
 
 }

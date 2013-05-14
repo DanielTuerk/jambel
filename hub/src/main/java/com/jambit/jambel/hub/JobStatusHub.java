@@ -15,6 +15,12 @@ import org.slf4j.LoggerFactory;
 import java.util.Collections;
 import java.util.Map;
 
+/**
+ * Hub to receive the job states and calculate the signal light color by the job state.
+ *
+ * @author frampp
+ * @author Daniel Tuerk (daniel.tuerk@jambit.com)
+ */
 public final class JobStatusHub implements JobStatusReceiver {
 
     private static final Logger logger = LoggerFactory.getLogger(JobStatusHub.class);
