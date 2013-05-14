@@ -68,19 +68,6 @@ public class Jambel implements ConfigListener {
         ConfigPathWatchService.addListener(this);
     }
 
-    private JambelInitializer initJambel(JambelConfiguration jambelConfiguration) {
-        SignalLight signalLight = signalLightModule.create(jambelConfiguration.getSignalLightConfiguration());
-
-        JobStatusHub hub = new JobStatusHub(signalLight, lightStatusCalculator,
-                lastStateStorageFactory.createStorage(jambelConfiguration.getSignalLightConfiguration()));
-        JobInitializer jobInitializer = new JobInitializer(hub, jambelConfiguration, jobRetriever, jobStateRetriever,
-                pollerExecutor, jenkinsNotificationsServlet);
-
-        JambelInitializer jambelInitializer = new JambelInitializer(hub, jobInitializer, signalLight);
-        jambelInitializer.init();
-        return jambelInitializer;
-    }
-
     @PreDestroy
     public void destroy() {
         ConfigPathWatchService.removeListener(this);
@@ -94,10 +81,38 @@ public class Jambel implements ConfigListener {
         jambelInitializerInstances.clear();
     }
 
+    /**
+     * Get all active signal lights by the {@link JambelInitializer}.
+     *
+     * @return {@link List<JambelInitializer>}
+     */
     public List<JambelInitializer> getJambelInitializerInstances() {
         return Lists.newArrayList(jambelInitializerInstances.values());
     }
 
+    /**
+     * Create the {@link JambelInitializer} for the given {@link JambelConfiguration} and execute the initializer.
+     *
+     * @param jambelConfiguration {@link JambelConfiguration} to initialize
+     * @return {@link JambelInitializer} executed initializer
+     */
+    private JambelInitializer initJambel(JambelConfiguration jambelConfiguration) {
+        SignalLight signalLight = signalLightModule.create(jambelConfiguration.getSignalLightConfiguration());
+
+        JobStatusHub hub = new JobStatusHub(signalLight, lightStatusCalculator,
+                lastStateStorageFactory.createStorage(jambelConfiguration.getSignalLightConfiguration()));
+        JobInitializer jobInitializer = new JobInitializer(hub, jambelConfiguration, jobRetriever, jobStateRetriever,
+                pollerExecutor, jenkinsNotificationsServlet);
+
+        JambelInitializer jambelInitializer = new JambelInitializer(hub, jobInitializer, signalLight);
+        jambelInitializer.init();
+        return jambelInitializer;
+    }
+
+    /**
+     *
+     * @param jambelInitializer
+     */
     private void destroyJambel(JambelInitializer jambelInitializer) {
         jenkinsNotificationsServlet.unsubscribe(jambelInitializer.getJobInitializer().getJambelConfiguration());
         destroyer.destroy(jambelInitializer.getSignalLight());

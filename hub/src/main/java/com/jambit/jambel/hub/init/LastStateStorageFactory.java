@@ -37,7 +37,9 @@ public class LastStateStorageFactory {
     public LastStateStorage createStorage(SignalLightConfiguration signalLightConfiguration) {
         Path filePath = Paths.get(storageFilePath + signalLightConfiguration.getHostAndPort().getHostText() + ".json");
         try {
-            Files.createFile(filePath);
+            if (Files.exists(filePath)) {
+                Files.createFile(filePath);
+            }
         } catch (FileAlreadyExistsException x) {
             //ignore
         } catch (IOException e) {

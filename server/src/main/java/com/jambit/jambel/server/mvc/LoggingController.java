@@ -6,11 +6,17 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
 
 /**
+ * Shows log messages from logback on the views.
  * @author Daniel Tuerk (daniel.tuerk@jambit.com)
  */
 @Controller
 public class LoggingController {
 
+    /**
+     * Loading the model and view with the actual log.
+     *
+     * @return {@link ModelAndView}
+     */
     @RequestMapping(value = "/log", method = RequestMethod.GET)
     public ModelAndView showLog() {
         ModelAndView modelAndView = new ModelAndView("log");

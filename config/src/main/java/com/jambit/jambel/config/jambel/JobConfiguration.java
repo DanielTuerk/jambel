@@ -4,6 +4,9 @@ import com.google.common.base.Optional;
 
 import java.net.URL;
 
+/**
+ * Container for a single job configuration from jenkins.
+ */
 public class JobConfiguration {
 
 	private URL jenkinsJobUrl;

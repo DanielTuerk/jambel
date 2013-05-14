@@ -14,6 +14,15 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
 
 /**
+ * Spring application context.
+ *
+ * <ul>
+ *     <li>detect the user home and create workspace</li>
+ *     <li>set the 'config' path in the workspace</li>
+ *     <li>set the 'storage' path in the workspace</li>
+ *     <li>create executor for the jenkins long polling task</li>
+ * </ul>
+ *
  * @author Daniel Tuerk (daniel.tuerk@jambit.com)
  */
 @Configuration

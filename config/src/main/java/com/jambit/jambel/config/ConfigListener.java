@@ -12,7 +12,26 @@ import java.nio.file.Path;
  */
 public interface ConfigListener {
 
+    /**
+     * New {@link JambelConfiguration} is detected and loaded.
+     *
+     * @param path                {@link Path} file which was created
+     * @param jambelConfiguration {@link JambelConfiguration} new configuration
+     */
     public void jambelCreated(Path path, JambelConfiguration jambelConfiguration);
+
+    /**
+     * {@link JambelConfiguration} was removed from project.
+     *
+     * @param path {@link Path} file which was removed
+     */
     public void jambelRemoved(Path path);
+
+    /**
+     * Changes in {@JambelConfiguration} detected.
+     *
+     * @param path                {@link Path} file which was updated
+     * @param jambelConfiguration {@link JambelConfiguration} updated configuration
+     */
     public void jambelUpdated(Path path, JambelConfiguration jambelConfiguration);
 }
