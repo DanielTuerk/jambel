@@ -45,7 +45,7 @@
 <h3>Setup Jenkins</h3>
 <ul>
     <li>install Notification Plugin in Jenkins</li>
-    <li>active the Notification Plugin in the job configuration</li>
+    <li>activate the Notification Plugin in the job configuration</li>
     <li>choose method 'HTTP'</li>
     <li>enter URL 'http://jambel.jambit.com/jambel/notifications/jenkins'</li>
 </ul>
