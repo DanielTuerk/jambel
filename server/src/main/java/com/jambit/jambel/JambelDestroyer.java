@@ -15,6 +15,7 @@ import org.springframework.stereotype.Component;
  * Destroyer for the jambel instances.
  * The component reset and destroy a active instance of a {@link SignalLight}.
  *
+ * @author frampp
  * @author Daniel Tuerk (daniel.tuerk@jambit.com)
  */
 @Component
@@ -70,7 +71,6 @@ public class JambelDestroyer {
      */
     private void sendAndWait(SignalLight signalLight, SignalLightStatus lightStatus, int milliseconds) {
         signalLight.setNewStatus(lightStatus);
-
         try {
             Thread.sleep(milliseconds);
         } catch (InterruptedException e) {

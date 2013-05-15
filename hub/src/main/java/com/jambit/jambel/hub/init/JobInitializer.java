@@ -54,7 +54,6 @@ public class JobInitializer {
             URL jobUrl = jobConfig.getJenkinsJobUrl();
             Job job = null;
             JobState state = null;
-            //TODO: remove poll of job states.. .maybe later for poller - posting not working
             if (jobConfig.isInitialJobStatePoll()) {
                 try {
                     job = jobRetriever.retrieve(jobUrl);
@@ -76,18 +75,14 @@ public class JobInitializer {
             UpdateMode updateMode = jobConfig.getUpdateMode();
             switch (updateMode) {
                 case polling:
-                    // TODO: get job name from config or better solution
                     poller.addPollingTask(job, jobConfig.getPollingInterval());
                     break;
                 case posting:
                     jobStateReceiverRegistry.subscribe(jambelConfiguration, hub);
                     break;
             }
-
-            // TODO update signal light?
         }
     }
-
 
     public JambelConfiguration getJambelConfiguration() {
         return jambelConfiguration;

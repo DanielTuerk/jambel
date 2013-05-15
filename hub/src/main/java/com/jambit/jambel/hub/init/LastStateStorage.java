@@ -45,8 +45,6 @@ public class LastStateStorage {
 
     /**
      * Load the latest stored state of the given {@link Job}.
-     * <p/>
-     * TODO: not working
      *
      * @param job {@link Job} to load state for
      * @return latest {@link JobState} or default
@@ -63,8 +61,6 @@ public class LastStateStorage {
 
     /**
      * Store the given states.
-     * <p/>
-     * TODO: not working
      *
      * @param lastStates states to store
      */
@@ -79,9 +75,13 @@ public class LastStateStorage {
         } catch (IOException e) {
             logger.error("can't write last job states to " + storageJsonFile.getFileName().toString(), e);
         }
-//        readFile();
     }
 
+    /**
+     * Read the storage file and marshal the stored {@link JobState}s of the {@link Job}s.
+     *
+     * Empty file or errors during execution will create a empty {@see lastStatesFromFile}.
+     */
     private void readFile() {
         try {
             InputStream in = Files.newInputStream(storageJsonFile);
@@ -102,8 +102,7 @@ public class LastStateStorage {
     /**
      * Simple container model for JSON.
      */
-    public class JsonContainer {
-
+    private class JsonContainer {
 
         public Job job;
         public JobState jobState;

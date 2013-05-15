@@ -26,6 +26,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ScheduledExecutorService;
 
+
+/**
+ * Main module of the web application.
+ * Loading the {@link SignalLight}s from config. Initialize and destroy the {@link SignalLight} at runtime by events of the
+ * {@link ConfigListener}.
+ *
+ * This component mange all states of the {@link SignalLight} instances during the system runtime.
+ */
 @Component
 public class Jambel implements ConfigListener {
 
@@ -62,16 +70,19 @@ public class Jambel implements ConfigListener {
 
     @PostConstruct
     public void init() {
+        logger.info("loading jambels from config");
         for (Map.Entry<Path, JambelConfiguration> entry : configManagement.loadConfigFromFilePath().entrySet()) {
             jambelInitializerInstances.put(entry.getKey(), initJambel(entry.getValue()));
         }
         ConfigPathWatchService.addListener(this);
+        logger.info("system started");
     }
 
     @PreDestroy
     public void destroy() {
+        logger.info("destroy jambels");
         ConfigPathWatchService.removeListener(this);
-
+        // stop state polling from any jenkins
         pollerExecutor.shutdownNow();
 
         // TODO: shutdown not working, no red or sometimes no colors and no connections ...
@@ -79,6 +90,7 @@ public class Jambel implements ConfigListener {
             destroyJambel(jambelInitializer);
         }
         jambelInitializerInstances.clear();
+        logger.info("system shutdown");
     }
 
     /**
@@ -110,8 +122,9 @@ public class Jambel implements ConfigListener {
     }
 
     /**
+     * Destroy an active {@link JambelInitializer} by a {@link JambelDestroyer}.
      *
-     * @param jambelInitializer
+     * @param jambelInitializer {@link JambelInitializer} to destroy
      */
     private void destroyJambel(JambelInitializer jambelInitializer) {
         jenkinsNotificationsServlet.unsubscribe(jambelInitializer.getJobInitializer().getJambelConfiguration());
