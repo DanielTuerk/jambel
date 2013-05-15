@@ -11,7 +11,7 @@
 <h3>Setup Jambel</h3>
 <ul>
     <li>create a new JSON file with a unique file name (e.g. you project name or jambel IP)</li>
-    <li>adding the jobs (<stron>WARNING!</stron> somtimes you have to use the IP address instead of the hostname for your Jenkins!!)</li>
+    <li>adding the jobs (<strong>WARNING!</strong> somtimes you have to use the IP address instead of the hostname for your Jenkins!!)</li>
 </ul>
 <p>Example:</p>
 <pre>
