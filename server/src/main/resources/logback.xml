@@ -17,9 +17,7 @@
         <appender-ref ref="webAppender"/>
     </logger>
 
-    <logger name="com.jambit.jambel" level="DEBUG">
-        <appender-ref ref="console"/>
-    </logger>
+    <logger name="com.jambit.jambel" level="DEBUG" />
 
 	<root level="DEBUG">
 		<appender-ref ref="console"/>

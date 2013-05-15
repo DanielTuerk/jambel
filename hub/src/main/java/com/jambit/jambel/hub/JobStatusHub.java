@@ -37,6 +37,7 @@ public final class JobStatusHub implements JobStatusReceiver {
         this.calculator = calculator;
         this.lastStateStorage = lastStateStorage;
         this.lastStates = Maps.newLinkedHashMap();
+
     }
 
     public void addJob(Job job, JobState lastState) {

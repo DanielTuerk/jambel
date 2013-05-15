@@ -50,6 +50,14 @@ public class ConfigManagement {
 
     @PostConstruct
     public void init() {
+        // create the config path if not existing
+        if (!Files.isDirectory(Paths.get(configFilePath))) {
+            try {
+                Files.createDirectory(Paths.get(configFilePath));
+            } catch (IOException e) {
+                throw new RuntimeException("can't create the folder for the configuration", e);
+            }
+        }
         // schedule the watch service in repeating loop to look for modification at the jambel configuration files
         configFilesWatchServiceExecutor.scheduleAtFixedRate(new ConfigPathWatchService(configFilePath), 0L, 1L, TimeUnit.MILLISECONDS);
     }
@@ -62,9 +70,7 @@ public class ConfigManagement {
      */
     public Map<Path, JambelConfiguration> loadConfigFromFilePath() {
         Map<Path, JambelConfiguration> jambelConfigurations = Maps.newHashMap();
-        Path path = Paths.get(configFilePath);
-
-        try (DirectoryStream<Path> ds = Files.newDirectoryStream(path, "*.json")) {
+        try (DirectoryStream<Path> ds = Files.newDirectoryStream(Paths.get(configFilePath), "*.json")) {
             for (Path p : ds) {
                 try {
                     JambelConfiguration jambelConfiguration = ConfigUtils.loadConfigFromPath(p);

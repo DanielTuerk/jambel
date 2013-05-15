@@ -30,7 +30,6 @@ public class JobInitializer {
 
     private final JobRetriever jobRetriever;
 
-
     private final JobStateRetriever jobStateRetriever;
 
     @Autowired

@@ -10,6 +10,8 @@ import com.jambit.jambel.light.SignalLightStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.concurrent.Callable;
+import java.util.concurrent.FutureTask;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
@@ -17,123 +19,119 @@ import java.util.regex.Pattern;
 
 /**
  * Sends ASCII commands using a {@link SignalLightCommandSender}.
- * 
+ *
  * @author "Florian Rampp (Florian.Rampp@jambit.com)"
- * 
  */
 public final class CommandControlledSignalLight implements SignalLight {
 
-	private static final Logger logger = LoggerFactory.getLogger(CommandControlledSignalLight.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(CommandControlledSignalLight.class.getName());
 
-	private final SignalLightConfiguration configuration;
+    /**
+     * Callable to send the {@link SignalLightStatus} to the {@link SignalLight}.
+     * The task is wrapped in {@link FutureTask} for an active keep alive interval.
+     */
+    private final class UpdateLightStatusTask implements Callable<Boolean> {
 
-	private final SignalLightCommandSender commandSender;
+        private final SignalLightStatus newStatus;
 
-	private final ScheduledExecutorService executor;
+        public UpdateLightStatusTask(SignalLightStatus newStatus) {
+            this.newStatus = newStatus;
+        }
 
-	public CommandControlledSignalLight(SignalLightConfiguration configuration, SignalLightCommandSender commandSender,
-			ScheduledExecutorService executor) {
-		this.configuration = configuration;
-		this.commandSender = commandSender;
-		this.executor = executor;
-	}
+        @Override
+        public Boolean call() throws Exception {
+            final Integer[] lightValues = toIntValues(newStatus);
 
-	private Integer[] toIntValues(SignalLightStatus status) {
-		Integer[] lightValues = { 0, 0, 0, 0 };
-		lightValues[configuration.getNumberForGreen() - 1] = status.getGreen().getCode();
-		lightValues[configuration.getNumberForYellow() - 1] = status.getYellow().getCode();
-		lightValues[configuration.getNumberForRed() - 1] = status.getRed().getCode();
-		return lightValues;
-	}
+            try {
+                sendCommand("set_all=" + Joiner.on(',').join(lightValues));
+            } catch (SignalLightNotAvailableException e) {
+                logger.warn("could not update signal light", e);
+                return false;
+            }
+            return true;
+        }
+    }
 
-	private SignalLightStatus toStatus(Integer[] values) {
-		LightMode green = LightMode.forCode(values[configuration.getNumberForGreen() - 1]);
-		LightMode yellow = LightMode.forCode(values[configuration.getNumberForYellow() - 1]);
-		LightMode red = LightMode.forCode(values[configuration.getNumberForRed() - 1]);
-		return SignalLightStatus.individual(green, yellow, red);
-	}
+    /**
+     * Task to execute the {@link SignalLight} state update in an keep alive interval.
+     */
+    private FutureTask<Boolean> scheduledTask;
 
-	private void sendCommand(String command) {
-		String response = commandSender.send(command);
-		if (!response.equals("OK"))
-			throw new RuntimeException("response to command '" + command + "' was '" + response + "', not 'OK'");
-	}
+    private final SignalLightConfiguration configuration;
 
-	@Override
-	public SignalLightStatus getCurrentStatus() {
-		String response = commandSender.send("status");
-		Pattern statusResponsePattern = Pattern.compile("^status=(\\d),(\\d),(\\d),(\\d),(\\d),(\\d)$");
-		Matcher matcher = statusResponsePattern.matcher(response);
-		if (matcher.matches()) {
-			// the last two digits are ignored
-			Integer[] values = new Integer[4];
-			for (int i = 0; i < 4; i++) {
-				values[i] = Integer.valueOf(matcher.group(i + 1));
-			}
-			return toStatus(values);
-		}
-		else {
-			throw new RuntimeException("response " + response + " did not match pattern " + statusResponsePattern);
-		}
-	}
+    private final SignalLightCommandSender commandSender;
 
-	private final class UpdateLightStatusTask implements Runnable {
-		private boolean failOnNextExecution = false;
+    private final ScheduledExecutorService executor;
 
-		private final SignalLightStatus newStatus;
+    public CommandControlledSignalLight(SignalLightConfiguration configuration, SignalLightCommandSender commandSender,
+            ScheduledExecutorService executor) {
+        this.configuration = configuration;
+        this.commandSender = commandSender;
+        this.executor = executor;
+    }
 
-		public UpdateLightStatusTask(SignalLightStatus newStatus) {
-			this.newStatus = newStatus;
-		}
+    private Integer[] toIntValues(SignalLightStatus status) {
+        Integer[] lightValues = {0, 0, 0, 0};
+        lightValues[configuration.getNumberForGreen() - 1] = status.getGreen().getCode();
+        lightValues[configuration.getNumberForYellow() - 1] = status.getYellow().getCode();
+        lightValues[configuration.getNumberForRed() - 1] = status.getRed().getCode();
+        return lightValues;
+    }
 
-		@Override
-		public void run() {
-			if (failOnNextExecution) {
-				throw new RuntimeException();
-			}
+    private SignalLightStatus toStatus(Integer[] values) {
+        LightMode green = LightMode.forCode(values[configuration.getNumberForGreen() - 1]);
+        LightMode yellow = LightMode.forCode(values[configuration.getNumberForYellow() - 1]);
+        LightMode red = LightMode.forCode(values[configuration.getNumberForRed() - 1]);
+        return SignalLightStatus.individual(green, yellow, red);
+    }
 
-			final Integer[] lightValues = toIntValues(newStatus);
+    private void sendCommand(String command) {
+        String response = commandSender.send(command);
+        if (!response.equals("OK")) {
+            throw new RuntimeException("response to command '" + command + "' was '" + response + "', not 'OK'");
+        }
+    }
 
-			try {
-				sendCommand("set_all=" + Joiner.on(',').join(lightValues));
-			}
-			catch (SignalLightNotAvailableException e) {
-				logger.warn("could not update signal light", e);
-			}
-		}
+    @Override
+    public SignalLightStatus getCurrentStatus() {
+        String response = commandSender.send("status");
+        Pattern statusResponsePattern = Pattern.compile("^status=(\\d),(\\d),(\\d),(\\d),(\\d),(\\d)$");
+        Matcher matcher = statusResponsePattern.matcher(response);
+        if (matcher.matches()) {
+            // the last two digits are ignored
+            Integer[] values = new Integer[4];
+            for (int i = 0; i < 4; i++) {
+                values[i] = Integer.valueOf(matcher.group(i + 1));
+            }
+            return toStatus(values);
+        } else {
+            throw new RuntimeException("response " + response + " did not match pattern " + statusResponsePattern);
+        }
+    }
 
-		public void failOnNextExecution() {
-			failOnNextExecution = true;
-		}
-	}
+    @Override
+    public void setNewStatus(SignalLightStatus newStatus) {
+        Optional<Integer> keepAliveInterval = configuration.getKeepAliveInterval();
+        if (keepAliveInterval.isPresent()) {
+            if (scheduledTask != null) {
+                scheduledTask.cancel(true);
+            }
+            scheduledTask = new FutureTask<>(new UpdateLightStatusTask(newStatus));
+            executor.scheduleWithFixedDelay(scheduledTask, 0, keepAliveInterval.get(), TimeUnit.MILLISECONDS);
+        } else {
+            executor.schedule(new UpdateLightStatusTask(newStatus), 1, TimeUnit.MILLISECONDS);
+        }
+    }
 
-	private UpdateLightStatusTask scheduledTask;
+    @Override
+    public void reset() {
+        sendCommand("reset");
+    }
 
-	@Override
-	public void setNewStatus(SignalLightStatus newStatus) {
-		Optional<Integer> keepAliveInterval = configuration.getKeepAliveInterval();
-		if (keepAliveInterval.isPresent()) {
-			if (scheduledTask != null) {
-				// get rid of the old task (this is the only way to do it, that sucks!)
-				scheduledTask.failOnNextExecution();
-			}
-			scheduledTask = new UpdateLightStatusTask(newStatus);
-			executor.scheduleWithFixedDelay(scheduledTask, 0, keepAliveInterval.get(), TimeUnit.MILLISECONDS);
-		}
-		else {
-			executor.schedule(new UpdateLightStatusTask(newStatus),1,TimeUnit.MILLISECONDS);
-		}
-	}
-
-	@Override
-	public void reset() {
-		sendCommand("reset");
-	}
-
-	@Override
-	public boolean isAvailable() {
-		return commandSender.reachesSignalLight();
-	}
+    @Override
+    public boolean isAvailable() {
+        return commandSender.reachesSignalLight();
+    }
 
     @Override
     public void shutdown() {
@@ -141,8 +139,8 @@ public final class CommandControlledSignalLight implements SignalLight {
     }
 
     @Override
-	public SignalLightConfiguration getConfiguration() {
-		return configuration;
-	}
+    public SignalLightConfiguration getConfiguration() {
+        return configuration;
+    }
 
 }

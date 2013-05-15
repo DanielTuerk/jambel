@@ -9,13 +9,14 @@ import com.jambit.jambel.hub.JobStatusHub;
 import com.jambit.jambel.hub.jobs.Job;
 import com.jambit.jambel.hub.jobs.JobState;
 import com.jambit.jambel.hub.poster.JobStateReceiverRegistry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Map;
@@ -29,6 +30,8 @@ import java.util.Map;
  */
 @Controller
 public class JenkinsNotificationsServlet implements JobStateReceiverRegistry {
+
+    private static final Logger logger = LoggerFactory.getLogger(JenkinsNotificationsServlet.class);
 
     /**
      * Registered hubs to map the notification data.
@@ -79,22 +82,22 @@ public class JenkinsNotificationsServlet implements JobStateReceiverRegistry {
      * Servlet mapping for the Jenkins notification plugin.
      *
      * @param req {@link HttpServletRequest}
-     * @throws ServletException {@link ServletException}
-     * @throws IOException      {@link IOException}
+     * @param response never used by required to get the mapping in the dispatcher for the notification plugin
      */
-    @RequestMapping(value = "notifications/jenkins", method = RequestMethod.POST)
-    public void doPost(HttpServletRequest req) throws ServletException, IOException {
+    @RequestMapping(value = "/notifications/jenkins")
+    public void doPost(HttpServletRequest req, HttpServletResponse response) {
         Gson gson = new Gson();
-        final NotificationData data = gson.fromJson(new InputStreamReader(req.getInputStream()), NotificationData.class);
-        MDC.put("phase", data.build.phase.toString());
-        MDC.put("jobName", data.name);
         try {
+            final NotificationData data = gson.fromJson(new InputStreamReader(req.getInputStream()), NotificationData.class);
+            MDC.put("phase", data.build.phase.toString());
+            MDC.put("jobName", data.name);
             for (JambelConfiguration jambelConfiguration : jambelPostReceiver.keySet()) {
                 for (JobConfiguration jobConfiguration : jambelConfiguration.getJobs()) {
 
                     String expectedHost = jobConfiguration.getJenkinsJobUrl().getHost();
                     String jobConfigPath = jobConfiguration.getJenkinsJobUrl().getPath().replace("/", "");
 
+                    logger.debug(expectedHost + "," + jobConfigPath + "," + req.getRemoteHost() + "," + req.getRemoteAddr() + "," + jobConfigPath);
 
                     if ((req.getRemoteHost().equals(expectedHost) || req.getRemoteAddr().equals(expectedHost))
                             && jobConfigPath.equals(data.url.replace("/", ""))) {
@@ -103,6 +106,8 @@ public class JenkinsNotificationsServlet implements JobStateReceiverRegistry {
                     }
                 }
             }
+        } catch (IOException e) {
+            logger.error("can't read request body", e);
         } finally {
             MDC.remove("jobName");
             MDC.remove("phase");

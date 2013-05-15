@@ -32,6 +32,7 @@ public class JspDefinitionsFactory extends UnresolvingLocaleDefinitionsFactory {
         addDefinition("welcome", MvcConfiguration.VIEW_RESOLVER_PREFIX + "welcome" + MvcConfiguration.VIEW_RESOLVER_SUFFIX);
         addDefinition("jambeln", MvcConfiguration.VIEW_RESOLVER_PREFIX + "jambeln" + MvcConfiguration.VIEW_RESOLVER_SUFFIX);
         addDefinition("log", MvcConfiguration.VIEW_RESOLVER_PREFIX + "log" + MvcConfiguration.VIEW_RESOLVER_SUFFIX);
+        addDefinition("help", MvcConfiguration.VIEW_RESOLVER_PREFIX + "help" + MvcConfiguration.VIEW_RESOLVER_SUFFIX);
     }
 
     @Override

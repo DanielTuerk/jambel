@@ -4,6 +4,7 @@ import com.jambit.jambel.config.jambel.SignalLightConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
@@ -26,6 +27,18 @@ public class LastStateStorageFactory {
     @Autowired
     public LastStateStorageFactory(String storageFilePath) {
         this.storageFilePath = storageFilePath;
+    }
+
+    @PostConstruct
+    public void init() {
+        // create the config path if not existing
+        if (!Files.isDirectory(Paths.get(storageFilePath))) {
+            try {
+                Files.createDirectory(Paths.get(storageFilePath));
+            } catch (IOException e) {
+                throw new RuntimeException("can't create the folder for the last state storage", e);
+            }
+        }
     }
 
     /**
