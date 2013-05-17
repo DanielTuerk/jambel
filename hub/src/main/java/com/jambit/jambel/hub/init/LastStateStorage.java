@@ -70,7 +70,6 @@ public class LastStateStorage {
             jsonContainerList.add(new JsonContainer(state.getKey(), state.getValue()));
         }
         try {
-
             Files.write(storageJsonFile, new Gson().toJson(jsonContainerList).getBytes());
         } catch (IOException e) {
             logger.error("can't write last job states to " + storageJsonFile.getFileName().toString(), e);

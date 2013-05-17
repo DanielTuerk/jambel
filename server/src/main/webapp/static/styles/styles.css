@@ -97,4 +97,5 @@ div.box {
     max-width: 300px;
     margin: 1%;
     padding: 0.5%;
+    word-wrap: break-word;
 }
