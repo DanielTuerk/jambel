@@ -31,7 +31,7 @@ import java.util.concurrent.ScheduledExecutorService;
  * Main module of the web application.
  * Loading the {@link SignalLight}s from config. Initialize and destroy the {@link SignalLight} at runtime by events of the
  * {@link ConfigListener}.
- *
+ * <p/>
  * This component mange all states of the {@link SignalLight} instances during the system runtime.
  */
 @Component
@@ -72,7 +72,11 @@ public class Jambel implements ConfigListener {
     public void init() {
         logger.info("loading jambels from config");
         for (Map.Entry<Path, JambelConfiguration> entry : configManagement.loadConfigFromFilePath().entrySet()) {
-            jambelInitializerInstances.put(entry.getKey(), initJambel(entry.getValue()));
+            if (entry.getKey() != null && entry.getValue() != null) {
+                jambelInitializerInstances.put(entry.getKey(), initJambel(entry.getValue()));
+            } else {
+                logger.warn("can't initialize jambel " + String.valueOf(entry.getKey()) + " configuration is null");
+            }
         }
         ConfigPathWatchService.addListener(this);
         logger.info("system started");
