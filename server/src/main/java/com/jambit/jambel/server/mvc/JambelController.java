@@ -1,10 +1,12 @@
 package com.jambit.jambel.server.mvc;
 
+import com.google.common.base.Strings;
 import com.jambit.jambel.Jambel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 
 /**
@@ -29,4 +31,13 @@ public class JambelController {
         modelAndView.addObject("initializers", jambel.getJambelInitializerInstances());
         return modelAndView;
     }
+
+    @RequestMapping(value = "/signalLightState", method = RequestMethod.GET)
+    public void getSignalLightStates(@RequestParam String ipAndPort) {
+        if(!Strings.isNullOrEmpty(ipAndPort)) {
+
+        }
+
+    }
+
 }

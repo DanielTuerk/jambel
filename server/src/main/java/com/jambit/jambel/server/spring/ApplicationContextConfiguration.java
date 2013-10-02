@@ -26,23 +26,29 @@ import java.io.File;
 @EnableAspectJAutoProxy
 public class ApplicationContextConfiguration {
 
+    public static final String JAMBEL_HOME = "/.jambel/";
+    public static final String JAMBEL_HOME_CONFIG = "/config/";
+    public static final String JAMBEL_HOME_STORAGE = "/storage/";
+
     @Bean
     public String jambelHomePath() {
-        File configPath = new File(System.getProperty("user.home") + "/.jambel/");
+        File configPath = new File(System.getProperty("user.home") + JAMBEL_HOME);
         if (!configPath.exists()) {
-            configPath.mkdirs();
+            if(!configPath.mkdirs()) {
+                throw new RuntimeException("can't create the JAMBEL HOME path: " + configPath.getAbsolutePath());
+            }
         }
         return configPath.getAbsolutePath();
     }
 
     @Bean
     public String configFilePath() {
-        return jambelHomePath() + "/config/";
+        return jambelHomePath() + JAMBEL_HOME_CONFIG;
     }
 
     @Bean
     public String storageFilePath() {
-        return jambelHomePath() + "/storage/";
+        return jambelHomePath() + JAMBEL_HOME_STORAGE;
     }
 
 }

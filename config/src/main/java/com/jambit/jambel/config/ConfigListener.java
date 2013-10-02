@@ -28,7 +28,7 @@ public interface ConfigListener {
     public void jambelRemoved(Path path);
 
     /**
-     * Changes in {@JambelConfiguration} detected.
+     * Changes in {@link JambelConfiguration} detected.
      *
      * @param path                {@link Path} file which was updated
      * @param jambelConfiguration {@link JambelConfiguration} updated configuration
