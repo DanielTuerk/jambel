@@ -26,7 +26,7 @@ public class JobStatePoller {
 
 	public void addPollingTask(Job job, Optional<Integer> pollingInterval) {
 		int interval = pollingInterval.or(DEFAULT_POLLING_INTERVAL);
-		executor.scheduleAtFixedRate(new PollTask(job, retriever, receiver), interval, interval, TimeUnit.MILLISECONDS);
+		//executor.scheduleAtFixedRate(new PollTask(job, retriever, receiver), interval, interval, TimeUnit.MILLISECONDS);
 	}
 
 }

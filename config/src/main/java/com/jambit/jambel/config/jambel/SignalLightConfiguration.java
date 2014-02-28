@@ -19,6 +19,20 @@ public final class SignalLightConfiguration {
 
 	private Integer keepAliveInterval;
 
+	public SignalLightConfiguration(String host, int port, int readTimeout,
+			SlotPosition green, Integer keepAliveInterval) {
+		super();
+		this.host = host;
+		this.port = port;
+		this.readTimeout = readTimeout;
+		this.green = green;
+		this.keepAliveInterval = keepAliveInterval;
+	}
+
+	public SignalLightConfiguration() {
+
+	}
+
 	public int getNumberForGreen() {
 		return green == SlotPosition.top ? 3 : 1;
 	}
