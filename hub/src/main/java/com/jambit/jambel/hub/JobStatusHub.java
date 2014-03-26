@@ -14,6 +14,8 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
 import java.util.Map;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  * Hub to receive the job states and calculate the signal light color by the job state.
@@ -31,6 +33,8 @@ public final class JobStatusHub implements JobStatusReceiver {
     private final Map<Job, JobState> lastStates;
 
     private final LastStateStorage lastStateStorage;
+
+    private final Queue<LightStatusOnChangeListener> listeners = new ConcurrentLinkedQueue<>();
 
     public JobStatusHub(SignalLight light, LightStatusCalculator calculator, LastStateStorage lastStateStorage) {
         this.light = light;
@@ -60,7 +64,19 @@ public final class JobStatusHub implements JobStatusReceiver {
         SignalLightStatus newLightStatus = calculator.calc(lastStates.values());
         light.setNewStatus(newLightStatus);
         logger.debug("updated signal light with new status '{}'", newLightStatus);
+        for(LightStatusOnChangeListener listener: listeners) {
+            listener.statusLightChanged(newLightStatus);
+        }
     }
+
+    public void addLightStatusListener(LightStatusOnChangeListener lightStatusOnChangeListener) {
+        listeners.add(lightStatusOnChangeListener);
+    }
+
+    public void removeLightStatusListener(LightStatusOnChangeListener lightStatusOnChangeListener) {
+        listeners.remove(lightStatusOnChangeListener);
+    }
+
 
     @Override
     public void updateJobState(Job job, JobState.Phase phase, Optional<JobState.Result> result) {

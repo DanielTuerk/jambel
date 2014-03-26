@@ -68,6 +68,12 @@ public class Jambel implements ConfigListener {
     @Autowired
     private LastStateStorageFactory lastStateStorageFactory;
 
+    /**
+     * Single listener for the REST controller ({@link com.jambit.jambel.server.mvc.JambelController})
+     * to track changes.
+     */
+    private ConfigListener jambelConfigListener;
+
     @PostConstruct
     public void init() {
         logger.info("loading jambels from config");
@@ -95,6 +101,10 @@ public class Jambel implements ConfigListener {
         }
         jambelInitializerInstances.clear();
         logger.info("system shutdown");
+    }
+
+    public void setJambelConfigListener(ConfigListener jambelConfigListener) {
+        this.jambelConfigListener = jambelConfigListener;
     }
 
     /**
@@ -138,17 +148,25 @@ public class Jambel implements ConfigListener {
     @Override
     public void jambelCreated(Path path, JambelConfiguration jambelConfiguration) {
         jambelInitializerInstances.put(path, initJambel(jambelConfiguration));
+        if (jambelConfigListener != null) {
+            jambelConfigListener.jambelCreated(path,jambelConfiguration);
+        }
     }
 
     @Override
     public void jambelRemoved(Path path) {
         destroyJambel(jambelInitializerInstances.get(path));
         jambelInitializerInstances.remove(path);
+        if (jambelConfigListener != null) {
+            jambelConfigListener.jambelRemoved(path);
+        }
     }
 
     @Override
     public void jambelUpdated(Path path, JambelConfiguration jambelConfiguration) {
-        jambelRemoved(path);
-        jambelCreated(path, jambelConfiguration);
+        jambelInitializerInstances.put(path, initJambel(jambelConfiguration));
+        if (jambelConfigListener != null) {
+            jambelConfigListener.jambelUpdated(path,jambelConfiguration);
+        }
     }
 }

@@ -36,7 +36,7 @@ public final class LanCommandSender implements SignalLightCommandSender {
 
 	@Override
 	public String send(String command) {
-		/*monitor.enter();
+		monitor.enter();
 		try {
 			// open
 			Socket connection = connect();
@@ -79,8 +79,7 @@ public final class LanCommandSender implements SignalLightCommandSender {
 		}
 		finally {
 			monitor.leave();
-		}*/
-		return null;
+		}
 	}
 
 	private synchronized Socket connect() throws IOException {

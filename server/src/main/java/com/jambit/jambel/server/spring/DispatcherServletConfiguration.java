@@ -12,6 +12,8 @@ import javax.servlet.ServletRegistration;
 /**
  * Classic dispatcher servlet for the Spring web application context.
  *
+ * We use servlet 3.0 for async handling of REST requests to support long polling.
+ *
  * @author Daniel Tuerk (daniel.tuerk@jambit.com)
  */
 public class DispatcherServletConfiguration implements WebApplicationInitializer {
@@ -31,8 +33,8 @@ public class DispatcherServletConfiguration implements WebApplicationInitializer
         // common dispatcher for Spring MVC
         ServletRegistration.Dynamic dispatcher = servletContext.addServlet(WEB_DISPATCHER_SERVLET_NAME, new DispatcherServlet(rootContext));
         dispatcher.setLoadOnStartup(1);
+        dispatcher.setAsyncSupported(true);
         dispatcher.addMapping(WEB_DISPATCHER_SERVLET_MAPPING);
-
         servletContext.addListener(new ContextLoaderListener(rootContext));
     }
 

@@ -2,6 +2,8 @@ package com.jambit.jambel.server.spring;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.web.servlet.ViewResolver;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
@@ -22,6 +24,8 @@ import org.springframework.web.servlet.view.tiles3.TilesView;
  */
 @Configuration
 @EnableWebMvc
+@EnableAsync
+@EnableScheduling
 public class MvcConfiguration extends WebMvcConfigurerAdapter {
 
     public static final String VIEW_RESOLVER_PREFIX = "/WEB-INF/views/";
