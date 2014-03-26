@@ -20,9 +20,9 @@ function requestJambels(loadAll) {
     if (loadAll) {
         getUrl += "/all";
     }
+    // time parameter to avoid caching by browser
     $.getJSON(getUrl+"?time="+new Date().toString()).done(
             function (response, responseState) {
-
                 if (responseState === "success") {
                     $('#jambelContainer').empty();
                     $('.configureDialog').remove();
@@ -37,7 +37,6 @@ function requestJambels(loadAll) {
                         jambelDiv.attr('id', 'jambel_' + i);
                         jambelDiv.addClass('box');
                         jambelDiv.css('float', 'left');
-
 
                         var jambelStatusDiv = $(document.createElement('div'));
                         jambelStatusDiv.addClass('jambel_status');
@@ -72,11 +71,11 @@ function requestJambels(loadAll) {
                         jambelJobConfigDiv.append('<h2>Jobs</h2>');
 
 
-                        <%--var jambelJobConfiButtonDiv = $(document.createElement('div'));--%>
-                        <%--jambelJobConfiButtonDiv.attr('id', 'configureDialog');--%>
-                        <%--jambelJobConfiButtonDiv.addClass('Edit_configuretion');--%>
-                        <%--jambelJobConfiButtonDiv.append('<input id = "imageEdit1" value= "1" type = "image" width = "30" height = "30" src = "<%= pageContext.getServletContext().getContextPath()--%>
-                        <%--%>/static/images/Edit.png" onclick="editConfiguretion(' + i + ')">');--%>
+                        var jambelJobConfiButtonDiv = $(document.createElement('div'));
+                        jambelJobConfiButtonDiv.attr('id', 'configureDialog');
+                        jambelJobConfiButtonDiv.addClass('Edit_configuretion');
+                        jambelJobConfiButtonDiv.append('<input id = "imageEdit1" value= "1" type = "image" width = "30" height = "30" src = "<%= pageContext.getServletContext().getContextPath()
+                        %>/static/images/Edit.png" onclick="editConfiguretion(' + i + ')">');
 
                         var jambelJobConfigurationDiv = $(document.createElement('div'));
                         jambelJobConfigurationDiv.attr('id', 'box_configured' + i);
@@ -124,8 +123,8 @@ function requestJambels(loadAll) {
 
                         jambelDiv.append(jambelStatusDiv);
                         jambelDiv.append(jambelJobConfigDiv);
-//                    jambelJobConfigDiv
-//                            .append(jambelJobConfiButtonDiv);
+                    jambelJobConfigDiv
+                            .append(jambelJobConfiButtonDiv);
                         jambelJobConfigDiv
                                 .append(jambelButtonConfigurationJob);
                         jambelJobConfigDiv.append(jambelJobConfigurationDiv);
@@ -258,7 +257,7 @@ function initDialogs() {
                 });
 
                 //	alert("IP : " + ip.val() +"\nPort : " + port.val() + "\nColor : " + color.val());
-                var creatNewJambel = "ip=" + ip.val() + "&port=" + port.val() + "&colors=" + color.val();
+                var creatNewJambel = "ip=" + $('#ip').val() + "&port=" + port.val() + "&colors=" + color.val();
                 var xhr = $.ajax({
                     url: URL + "?" + creatNewJambel,
                     type: "PUT"
@@ -387,6 +386,7 @@ function deleteText(index) {
 
 <div class="newDialog" id="newDialog" title="New Jambel">
 
+    <c:out value="${model.name}"/>
     <div>
         <div style="float: left;">IP:</div>
         <div>
