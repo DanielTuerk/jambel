@@ -10,7 +10,6 @@ var jambels;
 var URL = "signalLights";
 
 $(document).ready(function () {
-
     requestJambels(true);
 });
 
@@ -21,7 +20,7 @@ function requestJambels(loadAll) {
         getUrl += "/all";
     }
     // time parameter to avoid caching by browser
-    $.getJSON(getUrl+"?time="+new Date().toString()).done(
+    $.getJSON(getUrl + "?time=" + new Date().toString()).done(
             function (response, responseState) {
                 if (responseState === "success") {
                     $('#jambelContainer').empty();
@@ -83,18 +82,14 @@ function requestJambels(loadAll) {
 
                         for (var j = 0; j < signalLight.jobsConfiguration.length; j++) {
                             var jobConfigurationElement = signalLight.jobsConfiguration[j];
-                            var color;
-                            color = "#E3E3E3";
-
+                            var color = "#E3E3E3";
                             if (jobConfigurationElement.jobState.lastResult === "FAILURE") {
-
                                 color = "#F49F8F";
                             }
-
                             else if (jobConfigurationElement.jobState.lastResult === "SUCCESS") {
-
                                 color = "#A0E27D";
                             }
+
                             jambelJobConfigurationDiv.append('<table border="0"style="color:black;background-color:' + color + ';font-size:12px;word-wrap: break-word;max-width:325;width:325; margin-left:5px;margin-bottom: 2px; margin-top: 8px">'
                                     + '<tr><th style = "float: left">update Mode</th><td>' + jobConfigurationElement.jobConfiguration.updateMode + '</td></tr>'
                                     + '<tr><th style = "float: left">initialJobStatePoll</th><td>' + jobConfigurationElement.jobConfiguration.initialJobStatePoll + '</td></tr>'
@@ -111,22 +106,17 @@ function requestJambels(loadAll) {
                         jambelButtonConfigurationJob.append('<input id = "image_iconConfigured" type= "image" width="28px" height="28" src="<%= pageContext.getServletContext().getContextPath()%>/static/images/List2.png" onclick = "Configured('
                                 + i + ')">');
 
-                        var jambelConfigNewButton = $(document
-                                .createElement('div'));
-                        jambelConfigNewButton.attr('id', 'newButton'
-                                + i);
+                        var jambelConfigNewButton = $(document.createElement('div'));
+                        jambelConfigNewButton.attr('id', 'newButton' + i);
                         jambelConfigNewButton.addClass('new_Button');
                         jambelConfigNewButton
                                 .append('<input type = "Button" class = "new_Button" id = "new_Button" value = "New" onclick = "newText(\''
                                         + i + '\')">');
 
-
                         jambelDiv.append(jambelStatusDiv);
                         jambelDiv.append(jambelJobConfigDiv);
-                    jambelJobConfigDiv
-                            .append(jambelJobConfiButtonDiv);
-                        jambelJobConfigDiv
-                                .append(jambelButtonConfigurationJob);
+                        jambelJobConfigDiv.append(jambelJobConfiButtonDiv);
+                        jambelJobConfigDiv.append(jambelButtonConfigurationJob);
                         jambelJobConfigDiv.append(jambelJobConfigurationDiv);
                         $('#jambelContainer').append(jambelDiv);
                     }
@@ -187,35 +177,25 @@ function initDialogs() {
         buttons: {
             "Apply": function () {
 
-                var urlJobs = $("#newConfiText").click(function () {
-                    $("#newConfiText").val();
-                });
-
-                var pollingPosting = $('#deleteselect').click(function () {
-                    $('#deleteselect').val();
-                });
-                var interval = $('#text2').click(function () {
-                    $('#text2').val();
-                });
-                var check = $('#checkbox').click(function () {
-                    $('#checkbox').val();
-                });
-                alert(urlJobs.val() + " " + pollingPosting.val() + " " + interval.val() + " " + check.val());
-                $(this).dialog("close");
-                var obj = {
+                var postData = {
 
                     jobs: [
                         {
-                            "jenkinsJobUrl": +urlJobs.val(),
-                            "updateMode": +pollingPosting.val(),
-                            "initialJobStatePoll": +interval.val()
+                            "jenkinsJobUrl": +$("#newConfiText").val(),
+                            "updateMode": +$('#deleteselect').val(),
+                            "initialJobStatePoll": +$('#text2').val()
                         }
                     ]
                 };
                 var confiObject = $.ajax({
-                    url: URL + 1 + obj.jobs,
+                    url: URL + "/0",
+                    data:  JSON.stringify(postData),
+                    contentType: "application/json; charset=utf-8",
+                    dataType: "json",
                     type: "POST"
                 });
+
+                $(this).dialog("close");
             },
             "Cancel": function () {
                 $(this).dialog("close");
@@ -223,7 +203,7 @@ function initDialogs() {
 
         }
     });
-    /* }); */
+
     var newDialog = $("#newDialog").dialog({
         DialogClass: "dialog",
         autoOpen: false,
@@ -245,33 +225,16 @@ function initDialogs() {
 
         buttons: {
             "Apply": function () {
-
-                var ip = $('#ip').click(function () {
-                    $('#ip').val();
-                });
-                var port = $('#port').click(function () {
-                    $('#port').val();
-                });
-                var color = $('#color').click(function () {
-                    $('#color').val();
-                });
-
-                //	alert("IP : " + ip.val() +"\nPort : " + port.val() + "\nColor : " + color.val());
-                var creatNewJambel = "ip=" + $('#ip').val() + "&port=" + port.val() + "&colors=" + color.val();
+                var creatNewJambel = "ip=" + $('#ip').val() + "&port=" + $('#port').val() + "&colors=" + $('#color').val();
                 var xhr = $.ajax({
                     url: URL + "?" + creatNewJambel,
                     type: "PUT"
-
                 });
                 xhr.done(function () {
-
                     newDialog.dialog("close");
                 });
-
                 xhr.fail(function (jqXHR, textStatus, errorThrown) {
-
                     $("#error").append('<input  type= "image" width="20px" height="20" src="<%= pageContext.getServletContext().getContextPath()%>/static/images/error.png">' + " " + textStatus + ": " + errorThrown);
-
                 });
             },
             "Cancel": function () {
@@ -339,22 +302,16 @@ function newDialog() {
  * index - number of the line
  */
 function newText(jambelIndex) {
-    $(
-            '<input  id = "newConfiText" size = "35" style = "background-color: #C9CAC9; font-size: 12pt"/>')
+    $('<input  id = "newConfiText" size = "35" style = "background-color: #C9CAC9; font-size: 12pt"/>').appendTo("#jobConfigurationContent");
+
+    $('<select id= "deleteselect" style = "background-color:#C9CAC9; font-size: 12pt" ><option></option><option>Posting</option><option>Polling</option></select>')
+            .appendTo("#jobConfigurationContent");
+    $('<input  id = "text2" size = "6" style = "background-color:#C9CAC9; font-size: 12pt"/>')
             .appendTo("#jobConfigurationContent");
 
-    $(
-            '<select id= "deleteselect" style = "background-color:#C9CAC9; font-size: 12pt" ><option></option><option>Posting</option><option>Polling</option></select>')
-            .appendTo("#jobConfigurationContent");
-    $(
-            '<input  id = "text2" size = "6" style = "background-color:#C9CAC9; font-size: 12pt"/>')
-            .appendTo("#jobConfigurationContent");
+    $('<input type = "checkbox" id = "checkbox"/>').appendTo("#jobConfigurationContent");
 
-    $('<input type = "checkbox" id = "checkbox"/>').appendTo(
-            "#jobConfigurationContent");
-
-    $(
-            '<input class = "deletebutton" type = "button" id = "deletebutton" value = "Delete" onclick ="deleteButtonWithText()"style = "font-size: 12pt"/>')
+    $('<input class = "deletebutton" type = "button" id = "deletebutton" value = "Delete" onclick ="deleteButtonWithText()"style = "font-size: 12pt"/>')
             .appendTo("#jobConfigurationContent");
 }
 function deleteButtonWithText(index) {
@@ -366,20 +323,11 @@ function deleteButtonWithText(index) {
 }
 // Button for the deleting configuration jobs
 function deleteText(index) {
-    var element = $("#Delete_button" + index);
-    element.remove();
-
-    var element1 = $("#confi_checkbox" + index);
-    element1.remove();
-
-    var element2 = $("#empty_text" + index);
-    element2.remove();
-
-    var element3 = $("#select_text" + index);
-    element3.remove();
-
-    var element4 = $("#confi_text" + index);
-    element4.remove();
+    $("#Delete_button" + index).remove();
+    $("#confi_checkbox" + index).remove();
+    $("#empty_text" + index).remove();
+    $("#select_text" + index).remove();
+    $("#confi_text" + index).remove();
 }
 </script>
 
@@ -390,10 +338,8 @@ function deleteText(index) {
     <div>
         <div style="float: left;">IP:</div>
         <div>
-            <%--<form id=dialogValue action="get">--%>
-                <input id="ip" style="float: right; background-color: #C9CAC9" type="text"
-                       size="19" required="true" value=''>
-                <%--</form>--%>
+            <input id="ip" style="float: right; background-color: #C9CAC9" type="text"
+                   size="19" required="true" value=''>
         </div>
     </div>
 
