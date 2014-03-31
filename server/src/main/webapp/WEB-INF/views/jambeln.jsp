@@ -181,9 +181,9 @@ function initDialogs() {
 
                     jobs: [
                         {
-                            "jenkinsJobUrl": +$("#newConfiText").val(),
-                            "updateMode": +$('#deleteselect').val(),
-                            "initialJobStatePoll": +$('#text2').val()
+                            "jenkinsJobUrl": $("#newConfiText").val(),
+                            "updateMode": $('#deleteselect').val(),
+                            "initialJobStatePoll": $('#text2').val()
                         }
                     ]
                 };
