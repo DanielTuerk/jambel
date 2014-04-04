@@ -122,6 +122,7 @@ function requestJambels(loadAll) {
                     }
                     initDialogs();
 
+                    // recursive call. fills the stack trace. there's probably some better way to do the asynchronous sleep call, but it does the trick.
                     requestJambels(false);
                 }
                 else if (responseState === "notmodified") {

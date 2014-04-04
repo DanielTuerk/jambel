@@ -76,7 +76,15 @@ public class JobInitializer {
                     }
                 }
                 if (job == null || state == null) {
-                    job = new Job(jobUrl.getPath().split("/")[2], jobUrl.toString());
+                	String[] pathSubs = jobUrl.getPath().split("/");
+                	String jobName = null;
+                	if (pathSubs.length < 3) {
+                		logger.error("malformed jenkins URL : {}", jobUrl);
+                		jobName = pathSubs.length > 1 ? pathSubs[1] : pathSubs[0];
+                	} else {
+                		jobName = pathSubs[2];
+                	}
+                    job = new Job(jobName, jobUrl.toString());
                     // load from storage
                     state = hub.getLastStateStorage().loadLastState(job);
                 }

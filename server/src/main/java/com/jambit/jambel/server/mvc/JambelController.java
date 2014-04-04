@@ -34,8 +34,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.Map;
-import java.util.Queue;
+import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -89,6 +88,7 @@ public class JambelController implements ConfigListener, LightStatusOnChangeList
         LinkedBlockingQueue<Boolean> queue = new LinkedBlockingQueue<>();
         listeners.add(queue);
 
+        // long polling
         try {
             if (queue.poll(1, TimeUnit.MINUTES) != null) {
                 getAllSignalLightStates(session, response);
@@ -103,15 +103,34 @@ public class JambelController implements ConfigListener, LightStatusOnChangeList
 
     }
 
+    /** updates one jambel with index {index} according to json string param */
     @RequestMapping(value = {"/signalLights/{index}"}, method = RequestMethod.POST)
     @ResponseBody
-    public void updateJobConfiguration(@RequestBody String jobConfigurations, @PathVariable int index,
+    public void updateJobConfiguration(@RequestBody String jobConfigurationsIn, @PathVariable int index,
             HttpServletResponse response) {
-        LOG.info("POST request" + jobConfigurations.toString());
+        LOG.info("POST request" + jobConfigurationsIn.toString());
 
-        WebModelJobConfigurationsData one = new Gson().fromJson(jobConfigurations, WebModelJobConfigurationsData.class);
+        // json string to new job config object (
+        WebModelJobConfigurationsData one = new Gson().fromJson(jobConfigurationsIn, WebModelJobConfigurationsData.class);
+
         LOG.info("data: " + one);
 
+        // load jambel by index
+        JambelInitializer jambelInitializer = jambel.getJambelInitializerInstances().get(index);
+        JambelConfiguration jambelConfiguration = jambelInitializer.getJobInitializer().getJambelConfiguration();
+
+        // replace job config in jambel with object 'one'
+        Collection<JobConfiguration> jobConfigurations = jambelConfiguration.getJobs();
+        // btw: this is a dodgy way to set a member!
+        jobConfigurations.clear();
+        jobConfigurations.addAll(Arrays.asList(one.jobs));
+
+        // save modified jambel , create    configManagement.modify()...
+        try {
+            configManagement.createConfigFile(jambelConfiguration);
+        } catch (Exception e) {
+            LOG.error("can't update jobs", e);
+        }
     }
 
     @RequestMapping(value = {"/signalLights"}, method = RequestMethod.PUT)
@@ -127,7 +146,7 @@ public class JambelController implements ConfigListener, LightStatusOnChangeList
         }
     }
 
-    @RequestMapping(value = {"/signalLights/{all}"}, method = RequestMethod.GET)
+    @RequestMapping(value = {"/signalLights/all"}, method = RequestMethod.GET)
     @ResponseBody
     public void getAllSignalLightStates(HttpSession session,
             HttpServletResponse response) {
